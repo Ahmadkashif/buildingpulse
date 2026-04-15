@@ -1,8 +1,25 @@
-data/*.csv
-data/*.xlsx
-data/*.parquet
+# OS
 .DS_Store
+
+# Python
 __pycache__/
 *.pyc
-venv/
+
+# Backend
+backend/venv/
+backend/data/*.csv
+backend/data/*.xlsx
+backend/data/*.parquet
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.vercel/
+frontend/.turbo/
+
+# Claude
 .claude-personal/
