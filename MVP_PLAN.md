@@ -70,8 +70,8 @@ Defined here once. Backend returns this shape; frontend consumes this shape. If 
     "percentile": 68
   },
   "ll97": {
-    "capKbtuPerSqft2024to2029": 6.75,
-    "capKbtuPerSqft2030to2034": 4.53,
+    "capKbtuPerSqft2024To2029": 6.75,
+    "capKbtuPerSqft2030To2034": 4.53,
     "projectedAnnualFineUsd2024": 0,
     "projectedAnnualFineUsd2030": 12400,
     "atRisk": true

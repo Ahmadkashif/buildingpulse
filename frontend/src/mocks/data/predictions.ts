@@ -30,8 +30,8 @@ export const PREDICTION_FIXTURES: PredictionResponse[] = [
       percentile: 68,
     },
     ll97: {
-      capKbtuPerSqft2024to2029: 6.75,
-      capKbtuPerSqft2030to2034: 4.53,
+      capKbtuPerSqft2024To2029: 6.75,
+      capKbtuPerSqft2030To2034: 4.53,
       projectedAnnualFineUsd2024: 0,
       projectedAnnualFineUsd2030: 12400,
       atRisk: true,

@@ -47,8 +47,8 @@ Top-level:
 
 | Field                            | Type      |
 | -------------------------------- | --------- |
-| `capKbtuPerSqft2024to2029`       | `number`  |
-| `capKbtuPerSqft2030to2034`       | `number`  |
+| `capKbtuPerSqft2024To2029`       | `number`  |
+| `capKbtuPerSqft2030To2034`       | `number`  |
 | `projectedAnnualFineUsd2024`     | `number`  |
 | `projectedAnnualFineUsd2030`     | `number`  |
 | `atRisk`                         | `boolean` |

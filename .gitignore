@@ -10,6 +10,10 @@ backend/venv/
 backend/data/*.csv
 backend/data/*.xlsx
 backend/data/*.parquet
+backend/*.egg-info/
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/artifacts/
 
 # Frontend
 frontend/node_modules/
