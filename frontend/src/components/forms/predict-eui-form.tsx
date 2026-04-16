@@ -9,15 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { FormField } from "@/components/forms/form-field";
-import { usePredictEui } from "@/hooks/use-forecast";
+import { usePredict } from "@/hooks/use-prediction";
 import type { BuildingBorough, BuildingPropertyType, CreateBuildingInput } from "@/types";
 
 const PROPERTY_TYPES: Array<{ value: BuildingPropertyType; label: string }> = [
-  { value: "commercial-office", label: "Commercial Office" },
-  { value: "residential-multifamily", label: "Residential Multifamily" },
-  { value: "mixed-use", label: "Mixed Use" },
-  { value: "industrial", label: "Industrial" },
+  { value: "multifamily-housing", label: "Multifamily Housing" },
+  { value: "office", label: "Office" },
+  { value: "hotel", label: "Hotel" },
   { value: "retail", label: "Retail" },
+  { value: "hospital", label: "Hospital" },
+  { value: "mixed-use", label: "Mixed Use" },
 ];
 
 const BOROUGHS: Array<{ value: BuildingBorough; label: string }> = [
@@ -30,20 +31,20 @@ const BOROUGHS: Array<{ value: BuildingBorough; label: string }> = [
 
 export function PredictEuiForm() {
   const router = useRouter();
-  const predict = usePredictEui();
+  const predict = usePredict();
 
   const [propertyType, setPropertyType] = React.useState<BuildingPropertyType | "">("");
   const [borough, setBorough] = React.useState<BuildingBorough | "">("");
   const [grossFloorArea, setGrossFloorArea] = React.useState("");
   const [yearBuilt, setYearBuilt] = React.useState("");
-  const [buildingsOnLot, setBuildingsOnLot] = React.useState(1);
+  const [numberOfBuildings, setNumberOfBuildings] = React.useState(1);
 
   const isValid =
     propertyType !== "" &&
     borough !== "" &&
     Number(grossFloorArea) > 0 &&
     Number(yearBuilt) >= 1800 &&
-    Number(yearBuilt) <= 2024;
+    Number(yearBuilt) <= 2026;
 
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -54,12 +55,12 @@ export function PredictEuiForm() {
       borough: borough as BuildingBorough,
       grossFloorAreaSqft: Number(grossFloorArea),
       yearBuilt: Number(yearBuilt),
-      numberOfBuildingsOnLot: buildingsOnLot,
+      numberOfBuildings,
     };
 
     predict.mutate(input, {
       onSuccess: (response) => {
-        router.push(`/forecasting/predicting?forecastId=${response.data.id}`);
+        router.push(`/forecasting/predicting?predictionId=${response.data.id}`);
       },
     });
   };
@@ -124,14 +125,14 @@ export function PredictEuiForm() {
           </div>
         </FormField>
 
-        <FormField label="Year Built" htmlFor="year-built" hint="Accepted range: 1800 – 2024">
+        <FormField label="Year Built" htmlFor="year-built" hint="Accepted range: 1800 – 2026">
           <div className="relative">
             <Input
               id="year-built"
               type="number"
               inputMode="numeric"
               min={1800}
-              max={2024}
+              max={2026}
               placeholder="YYYY"
               value={yearBuilt}
               onChange={(e) => setYearBuilt(e.target.value)}
@@ -145,14 +146,14 @@ export function PredictEuiForm() {
       <FormField label="Number of Buildings on Lot">
         <div className="flex items-center gap-4">
           <Slider
-            value={buildingsOnLot}
-            onValueChange={setBuildingsOnLot}
+            value={numberOfBuildings}
+            onValueChange={setNumberOfBuildings}
             min={1}
             max={10}
             aria-label="Number of buildings on lot"
           />
           <div className="bg-surface-container-high text-on-surface grid h-10 w-14 shrink-0 place-items-center rounded-md text-sm font-semibold tabular-nums">
-            {buildingsOnLot}
+            {numberOfBuildings}
           </div>
         </div>
       </FormField>
@@ -163,7 +164,7 @@ export function PredictEuiForm() {
           <ArrowRight className="size-4" />
         </Button>
         <p className="text-on-surface-variant text-xs">
-          Calculations are based on 2024 Local Law 97 benchmark data.
+          Calculations are based on NYC Local Law 84 benchmark data.
         </p>
       </div>
     </form>

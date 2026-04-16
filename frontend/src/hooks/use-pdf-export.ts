@@ -2,15 +2,15 @@
 
 import * as React from "react";
 
-import { PDF_EXPORT_STAGES } from "@/mocks/data/forecast-stages";
-import type { ForecastStage } from "@/types";
+import { PDF_EXPORT_STAGES } from "@/mocks/data/prediction-stages";
+import type { PredictionStage } from "@/types";
 
 type ExportStatus = "idle" | "exporting" | "ready" | "error";
 
 interface UsePdfExportReturn {
   status: ExportStatus;
   progress: number;
-  stage: ForecastStage;
+  stage: PredictionStage;
   start: () => void;
   reset: () => void;
 }

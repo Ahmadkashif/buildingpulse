@@ -2,7 +2,7 @@
 
 # buildingPulse
 
-Energy-forecasting UI scaffold. A NYC building operator inputs specifications, a forecasting model produces a Site EUI estimate, and the operator reviews the resulting report.
+Site EUI prediction UI for NYC building owners. A user submits building specifications (type, borough, sqft, year built, number of buildings) and receives back a predicted Site Energy Use Intensity, their percentile ranking within a peer cohort, and a Local Law 97 compliance outlook with projected fine.
 
 ## Design system
 
@@ -13,6 +13,8 @@ Energy-forecasting UI scaffold. A NYC building operator inputs specifications, a
 ## Workflow
 
 1. `/forecasting` — form page for building specifications.
-2. `/forecasting/predicting` — loading animation with 10% milestone copy.
-3. `/forecasting/report/[id]` — report layout (KPIs, chart, insights, action column).
+2. `/forecasting/predicting?predictionId=…` — loading animation with 10% milestone copy.
+3. `/forecasting/report/[id]` — result layout (KPIs: EUI / percentile / LL97; peer cohort chart; insights; action column).
 4. Export dialog — PDF export stub reuses the progress primitive.
+
+See `specs/models/prediction.md` for the `PredictionResponse` contract shared with the backend.

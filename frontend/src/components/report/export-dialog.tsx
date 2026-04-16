@@ -36,7 +36,7 @@ export function ExportDialog({ open, onClose, reportId }: ExportDialogProps) {
       open={open}
       onClose={onClose}
       title="Export Report as PDF"
-      description={`Report ${reportId} · DeepGrid editorial layout`}
+      description={`Report ${reportId} · buildingPulse editorial layout`}
     >
       {pdf.status === "idle" ? (
         <div className="flex flex-col gap-5">

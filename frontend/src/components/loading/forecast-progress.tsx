@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { Progress } from "@/components/ui/progress";
-import { FORECAST_STAGES } from "@/mocks/data/forecast-stages";
+import { PREDICTION_STAGES } from "@/mocks/data/prediction-stages";
 
 interface ForecastProgressProps {
   /** Called once the animation reaches 100%. */
@@ -36,7 +36,7 @@ export function ForecastProgress({ onComplete, tickMs = 160 }: ForecastProgressP
   }, [progress, onComplete]);
 
   const stage =
-    [...FORECAST_STAGES].reverse().find((s) => progress >= s.threshold) ?? FORECAST_STAGES[0]!;
+    [...PREDICTION_STAGES].reverse().find((s) => progress >= s.threshold) ?? PREDICTION_STAGES[0]!;
 
   return (
     <div
@@ -48,7 +48,7 @@ export function ForecastProgress({ onComplete, tickMs = 160 }: ForecastProgressP
         className="bg-signature/20 pointer-events-none absolute -inset-x-20 top-1/3 h-48 rounded-full blur-3xl"
       />
       <div className="relative flex flex-col gap-3">
-        <span className="text-label-md text-on-surface-variant">DeepGrid Forecast Engine</span>
+        <span className="text-label-md text-on-surface-variant">buildingPulse Prediction Engine</span>
         <h1 className="font-heading text-on-surface text-5xl font-bold tracking-tight">
           {stage.headline}
         </h1>

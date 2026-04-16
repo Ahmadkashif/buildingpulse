@@ -8,15 +8,15 @@ import { ForecastProgress } from "@/components/loading/forecast-progress";
 function PredictingInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const forecastId = searchParams.get("forecastId");
+  const predictionId = searchParams.get("predictionId");
 
   const onComplete = React.useCallback(() => {
-    if (!forecastId) return;
+    if (!predictionId) return;
     const id = setTimeout(() => {
-      router.push(`/forecasting/report/${forecastId}`);
+      router.push(`/forecasting/report/${predictionId}`);
     }, 600);
     return () => clearTimeout(id);
-  }, [forecastId, router]);
+  }, [predictionId, router]);
 
   return <ForecastProgress onComplete={onComplete} />;
 }

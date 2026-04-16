@@ -10,56 +10,81 @@ import { KpiTile } from "@/components/report/kpi-tile";
 import { BarChartCard } from "@/components/report/bar-chart-card";
 import { InfoCard } from "@/components/report/info-card";
 import { InsightCard } from "@/components/report/insight-card";
-import { RankedListCard } from "@/components/report/ranked-list-card";
 import { ActionColumn } from "@/components/report/action-column";
 import { ExportDialog } from "@/components/report/export-dialog";
-import { useForecast } from "@/hooks/use-forecast";
-import { useReport } from "@/hooks/use-report";
-import type { ForecastInsightBadge } from "@/types";
+import { usePrediction } from "@/hooks/use-prediction";
+import type {
+  BuildingBorough,
+  BuildingPropertyType,
+  InsightBadge,
+  PredictionInsight,
+  PredictionResponse,
+} from "@/types";
 
-const INSIGHT_ICONS: Record<ForecastInsightBadge, React.ComponentType<{ className?: string }>> = {
+const INSIGHT_ICONS: Record<InsightBadge, React.ComponentType<{ className?: string }>> = {
   savings: Thermometer,
   verified: Wind,
   "yield-high": Sun,
   action: Leaf,
 };
 
+const PROPERTY_TYPE_LABELS: Record<BuildingPropertyType, string> = {
+  "multifamily-housing": "Multifamily Housing",
+  office: "Office",
+  hotel: "Hotel",
+  retail: "Retail",
+  hospital: "Hospital",
+  "mixed-use": "Mixed Use",
+};
+
+const BOROUGH_LABELS: Record<BuildingBorough, string> = {
+  manhattan: "Manhattan",
+  brooklyn: "Brooklyn",
+  queens: "Queens",
+  bronx: "Bronx",
+  "staten-island": "Staten Island",
+};
+
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [exportOpen, setExportOpen] = React.useState(false);
 
-  const reportQuery = useReport(id);
-  const forecastQuery = useForecast(id);
+  const query = usePrediction(id);
 
-  if (reportQuery.isLoading || forecastQuery.isLoading) {
+  if (query.isLoading) {
     return <ReportSkeleton />;
   }
 
-  const report = reportQuery.data?.data;
-  const forecast = forecastQuery.data?.data;
+  const prediction = query.data?.data;
 
-  if (!report || !forecast) {
+  if (!prediction) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col gap-4 py-24 text-center">
-        <h1 className="font-heading text-2xl font-bold">Report not found</h1>
+        <h1 className="font-heading text-2xl font-bold">Prediction not found</h1>
         <p className="text-on-surface-variant text-sm">
-          We couldn&apos;t load the forecast report for {id}.
+          We couldn&apos;t load the prediction for {id}.
         </p>
       </div>
     );
   }
 
+  const kpis = buildKpis(prediction);
+  const peerChart = buildPeerChart(prediction);
+  const insights = buildInsights(prediction);
+  const profile = buildProfile(prediction);
+  const pageTitle = `Site EUI Prediction · ${PROPERTY_TYPE_LABELS[prediction.input.propertyType]}`;
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title={`AI Forecast Report: ${report.buildingName}`}
-        description="Predicted energy profile, insights, and recommended interventions."
+        title={pageTitle}
+        description="Predicted Site Energy Use Intensity, peer cohort ranking, and LL97 compliance outlook."
       />
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="flex flex-col gap-6">
           <section aria-label="Headline metrics" className="grid gap-4 md:grid-cols-3">
-            {report.kpis.map((kpi) => (
+            {kpis.map((kpi) => (
               <KpiTile
                 key={kpi.label}
                 label={kpi.label}
@@ -71,22 +96,18 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           </section>
 
           <BarChartCard
-            title="Consumption Breakdown"
-            description="Monthly predictive analysis for the 2024 calendar year."
-            data={forecast.breakdown.map((d) => ({
-              label: d.month,
-              primary: d.predicted,
-              secondary: d.savingsPotential,
-            }))}
-            legend={{ primary: "Predicted", secondary: "Savings Potential" }}
+            title="Peer Cohort Comparison"
+            description={`Your building vs. ${prediction.peer.cohortSize.toLocaleString()} similar buildings in ${BOROUGH_LABELS[prediction.peer.cohort.borough]}.`}
+            data={peerChart}
+            legend={{ primary: "Peer Cohort", secondary: "Your Building" }}
           />
 
-          <section aria-label="AI insights" className="flex flex-col gap-4">
+          <section aria-label="Insights" className="flex flex-col gap-4">
             <h2 className="font-heading text-lg font-semibold tracking-tight">
-              AI Insights &amp; Observations
+              Insights &amp; Observations
             </h2>
             <div className="grid gap-4 md:grid-cols-2">
-              {forecast.insights.map((insight) => {
+              {insights.map((insight) => {
                 const Icon = INSIGHT_ICONS[insight.badge];
                 return (
                   <InsightCard
@@ -103,34 +124,149 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         <div className="flex flex-col gap-6">
-          <InfoCard title="Building Profile" rows={report.profile} />
+          <InfoCard title="Building Profile" rows={profile} />
 
           <ActionColumn>
             <Button variant="tertiary" width="full" onClick={() => setExportOpen(true)}>
               <Download className="size-4" /> Export Full PDF Report
             </Button>
             <Button variant="secondary" width="full">
-              <FileText className="size-4" /> Apply Recommendations
+              <FileText className="size-4" /> View Retrofit Options
             </Button>
             <Button variant="tertiary" width="full">
               <Pencil className="size-4" /> Refine Building Inputs
             </Button>
           </ActionColumn>
-
-          <RankedListCard
-            title="Top Portfolio Consumers"
-            items={report.rankedAssets.map((a) => ({
-              label: a.buildingName,
-              value: a.value,
-              unit: a.unit,
-            }))}
-          />
         </div>
       </div>
 
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} reportId={id} />
     </div>
   );
+}
+
+interface KpiViewModel {
+  label: string;
+  value: string;
+  caption?: string;
+  signature?: boolean;
+}
+
+function buildKpis(p: PredictionResponse): KpiViewModel[] {
+  const eui = p.prediction.siteEuiKbtuPerSqft;
+  return [
+    {
+      label: "Predicted Site EUI",
+      value: `${eui.toFixed(1)} kBtu/sf`,
+      caption: `Interval: ${p.prediction.intervalLow.toFixed(1)} – ${p.prediction.intervalHigh.toFixed(1)} kBtu/sf`,
+      signature: true,
+    },
+    {
+      label: "Peer Percentile",
+      value: `${p.peer.percentile}${ordinal(p.peer.percentile)}`,
+      caption: `Higher = uses more energy than peers`,
+    },
+    {
+      label: "LL97 Status",
+      value: p.ll97.atRisk ? "At Risk" : "Compliant",
+      caption: p.ll97.atRisk
+        ? `Projected fine: $${p.ll97.projectedAnnualFineUsd2030.toLocaleString()}/yr by 2030`
+        : "Below current cap",
+    },
+  ];
+}
+
+function buildPeerChart(p: PredictionResponse) {
+  return [
+    { label: "p25", primary: p.peer.p25SiteEui, secondary: 0 },
+    { label: "Median", primary: p.peer.medianSiteEui, secondary: 0 },
+    { label: "You", primary: 0, secondary: p.prediction.siteEuiKbtuPerSqft },
+    { label: "p75", primary: p.peer.p75SiteEui, secondary: 0 },
+  ];
+}
+
+function buildInsights(p: PredictionResponse): PredictionInsight[] {
+  const insights: PredictionInsight[] = [];
+  const eui = p.prediction.siteEuiKbtuPerSqft;
+  const gap = eui - p.peer.medianSiteEui;
+  const typeLabel = PROPERTY_TYPE_LABELS[p.input.propertyType].toLowerCase();
+
+  if (p.peer.percentile >= 75) {
+    insights.push({
+      id: "high-usage",
+      badge: "action",
+      title: "High Energy Use",
+      description: `Your building sits at the ${p.peer.percentile}${ordinal(p.peer.percentile)} percentile — using more energy than most comparable ${typeLabel} buildings in this cohort.`,
+    });
+  } else if (p.peer.percentile <= 25) {
+    insights.push({
+      id: "top-performer",
+      badge: "verified",
+      title: "Leading Your Cohort",
+      description: `Predicted Site EUI falls below the 25th percentile for this cohort — a strong efficiency baseline.`,
+    });
+  } else {
+    insights.push({
+      id: "median-range",
+      badge: "verified",
+      title: "Near Cohort Median",
+      description: `Predicted Site EUI sits within the middle 50% of the ${typeLabel} cohort for this vintage.`,
+    });
+  }
+
+  if (p.ll97.atRisk) {
+    insights.push({
+      id: "ll97-risk",
+      badge: "action",
+      title: "Projected LL97 Fine",
+      description: `At current efficiency, annual LL97 penalties are projected at ~$${p.ll97.projectedAnnualFineUsd2030.toLocaleString()} starting 2030.`,
+    });
+  }
+
+  if (gap > 0) {
+    const savings = Math.round(gap * p.input.grossFloorAreaSqft);
+    insights.push({
+      id: "retrofit-opportunity",
+      badge: "savings",
+      title: "Retrofit Opportunity",
+      description: `Reaching cohort median (${p.peer.medianSiteEui.toFixed(1)} kBtu/sf) would cut site energy by ~${savings.toLocaleString()} kBtu/yr.`,
+    });
+  } else {
+    insights.push({
+      id: "vintage-cohort",
+      badge: "yield-high",
+      title: "Vintage Cohort Context",
+      description: `Benchmarked against ${p.peer.cohortSize.toLocaleString()} ${p.peer.cohort.ageBand} ${typeLabel} buildings in ${BOROUGH_LABELS[p.peer.cohort.borough]}.`,
+    });
+  }
+
+  return insights.slice(0, 4);
+}
+
+function buildProfile(p: PredictionResponse) {
+  return [
+    { label: "Property Type", value: PROPERTY_TYPE_LABELS[p.input.propertyType] },
+    { label: "Borough", value: BOROUGH_LABELS[p.input.borough] },
+    { label: "Gross Floor Area", value: `${p.input.grossFloorAreaSqft.toLocaleString()} sqft` },
+    { label: "Year Built", value: String(p.input.yearBuilt) },
+    { label: "Buildings on Lot", value: String(p.input.numberOfBuildings) },
+    { label: "Model Version", value: p.prediction.modelVersion },
+  ];
+}
+
+function ordinal(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return "th";
+  switch (n % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
 }
 
 function ReportSkeleton() {

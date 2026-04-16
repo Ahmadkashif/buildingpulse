@@ -26,14 +26,14 @@ export default function ForecastingPage() {
         />
         <EdgeAccentCard
           accent="primary"
-          label="Market Average"
-          value="64.2 kBtu/sf"
+          label="Benchmark Source"
+          value="NYC LL84 Disclosure"
           icon={<LineChart className="size-5" />}
         />
         <EdgeAccentCard
           accent="tertiary"
           label="Model Version"
-          value="V4.2.1 DeepGrid"
+          value="Baseline LR v1"
           icon={<Wrench className="size-5" />}
         />
       </section>

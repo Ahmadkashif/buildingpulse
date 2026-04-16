@@ -1,5 +1,3 @@
-import { buildingHandlers } from "./handlers/building";
-import { forecastHandlers } from "./handlers/forecast";
-import { reportHandlers } from "./handlers/report";
+import { predictionHandlers } from "./handlers/prediction";
 
-export const handlers = [...buildingHandlers, ...forecastHandlers, ...reportHandlers];
+export const handlers = [...predictionHandlers];

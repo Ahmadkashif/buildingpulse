@@ -2,23 +2,23 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import type { ForecastInsightBadge } from "@/types";
+import type { InsightBadge } from "@/types";
 
 interface InsightCardProps extends React.ComponentProps<"article"> {
   title: string;
   description: string;
-  badge: ForecastInsightBadge;
+  badge: InsightBadge;
   icon?: React.ReactNode;
 }
 
-const BADGE_LABEL: Record<ForecastInsightBadge, string> = {
+const BADGE_LABEL: Record<InsightBadge, string> = {
   savings: "Savings",
   verified: "Verified",
   "yield-high": "Yield High",
   action: "Action",
 };
 
-const BADGE_ICON_BG: Record<ForecastInsightBadge, string> = {
+const BADGE_ICON_BG: Record<InsightBadge, string> = {
   savings: "bg-secondary-container text-on-secondary-container",
   verified: "bg-primary-container/30 text-primary",
   "yield-high": "bg-tertiary-container text-on-tertiary-container",

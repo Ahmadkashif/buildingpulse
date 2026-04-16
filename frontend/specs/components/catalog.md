@@ -20,14 +20,12 @@ A flat index of the reusable components extracted from the source designs.
 
 - `KpiTile` — tonal and `signature` variants
 - `EdgeAccentCard` — metric strip
-- `BarChartCard` — stacked-bar SVG chart with legend chips
+- `BarChartCard` — stacked-bar SVG chart with legend chips (used for peer cohort comparison)
 - `InfoCard` — titled k/v card
 - `InsightCard` — icon + badge + title + body
-- `AssetCard` — cover image + badge + metric pair + variance bar
-- `AlertBanner` — primary-gradient full-width card
-- `RankedListCard` — ordered list with tabular numerics
 - `ActionColumn` — vertical CTA stack
 - `ExportDialog` — glass modal wrapping the PDF export stub
+- `AssetCard`, `AlertBanner`, `RankedListCard` — available in the kit, not used in the current MVP flow
 
 ## Forms
 

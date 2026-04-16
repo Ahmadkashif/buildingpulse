@@ -1,20 +1,18 @@
-# Building
+# Building Input
 
-A NYC property the user submits for an EUI forecast.
+Building specs the user submits to generate a Site EUI prediction. This is the request payload only — no persisted Building entity is modeled for the MVP.
 
-## Shape
+## Shape (`CreateBuildingInput`)
 
-| Field                    | Type                                                                                |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `id`                     | `string`                                                                            |
-| `name`                   | `string`                                                                            |
-| `propertyType`           | `commercial-office \| residential-multifamily \| mixed-use \| industrial \| retail` |
-| `borough`                | `manhattan \| brooklyn \| queens \| bronx \| staten-island`                         |
-| `grossFloorAreaSqft`     | `number` (500 – 5,000,000)                                                          |
-| `yearBuilt`              | `number` (1800 – 2024)                                                              |
-| `numberOfBuildingsOnLot` | `number` (1 – 10)                                                                   |
+| Field                 | Type                                                                           |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `propertyType`        | `multifamily-housing \| office \| hotel \| retail \| hospital \| mixed-use`    |
+| `borough`             | `manhattan \| brooklyn \| queens \| bronx \| staten-island`                    |
+| `grossFloorAreaSqft`  | `number` (500 – 5,000,000)                                                     |
+| `yearBuilt`           | `number` (1800 – 2026)                                                         |
+| `numberOfBuildings`   | `number` (1 – 10)                                                              |
 
-## Endpoints
+## Where it's used
 
-- `GET /api/buildings` — list
-- `GET /api/buildings/:id` — detail
+- Submitted via `POST /api/predictions` (see `prediction.md`).
+- Echoed back inside `PredictionResponse.input` so result pages can render the building profile without a separate fetch.
