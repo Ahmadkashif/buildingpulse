@@ -14,6 +14,10 @@ backend/*.egg-info/
 backend/.pytest_cache/
 backend/.ruff_cache/
 backend/artifacts/
+backend/var/
+backend/.venv/
+backend/.coverage
+.claude/
 
 # Frontend
 frontend/node_modules/
