@@ -125,3 +125,8 @@ source_modules =
     app.policy
 forbidden_modules =
     opentelemetry
+# Direct-import only: api legitimately depends on app.deps (which owns
+# opentelemetry wiring). The contract's intent is that no non-deps layer
+# reaches into opentelemetry directly; transitive paths through `app.deps`
+# are the architecture working.
+allow_indirect_imports = True

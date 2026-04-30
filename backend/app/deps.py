@@ -24,7 +24,7 @@ import logging
 import os
 import sys
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextvars import ContextVar
 from typing import Any
 
@@ -43,6 +43,10 @@ from opentelemetry.sdk.trace.export import (
     SimpleSpanProcessor,
 )
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from app.repos.audit_repo import AuditRepo
+from app.repos.connection import connect
+from app.services.resource.audit.service import AuditService
 
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
@@ -159,11 +163,38 @@ def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
     return structlog.get_logger(name) if name else structlog.get_logger()  # type: ignore[no-any-return]
 
 
+def get_request_id() -> str:
+    """Return the current request_id bound by RequestIdMiddleware, or ''."""
+    rid = _request_id_var.get()
+    return rid if rid is not None else ""
+
+
+def get_trace_id() -> str:
+    """Return the active OpenTelemetry trace_id as a 32-char hex string, or ''."""
+    span = trace.get_current_span()
+    ctx = span.get_span_context() if span is not None else None
+    if ctx is not None and ctx.is_valid:
+        return format(ctx.trace_id, "032x")
+    return ""
+
+
+async def get_audit_service() -> AsyncIterator[AuditService]:
+    """FastAPI dependency: yields an AuditService backed by a per-request connection."""
+    conn = connect()
+    try:
+        yield AuditService(AuditRepo(conn))
+    finally:
+        conn.close()
+
+
 __all__ = [
     "REQUEST_ID_HEADER",
     "RequestIdMiddleware",
     "configure_logging",
     "configure_telemetry",
+    "get_audit_service",
     "get_logger",
+    "get_request_id",
+    "get_trace_id",
     "instrument_app",
 ]

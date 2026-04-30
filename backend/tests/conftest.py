@@ -66,9 +66,11 @@ def valid_response_body() -> dict[str, Any]:
 
 
 @pytest.fixture
-def client() -> Any:
-    """FastAPI TestClient. Red until `app.main` is implemented."""
+def client(tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> Any:
+    """FastAPI TestClient with a per-test SQLite DB and lifespan-applied migrations."""
     from app.main import app  # type: ignore[attr-defined]
     from fastapi.testclient import TestClient
 
-    return TestClient(app)
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "buildingpulse.db"))
+    with TestClient(app) as c:
+        yield c
