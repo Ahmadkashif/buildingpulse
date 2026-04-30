@@ -34,14 +34,20 @@ test:
 	cd $(BACKEND) && $(PY) scripts/cov_rubric.py
 
 mutate:
-	cd $(BACKEND) && $(PY) -m mutmut run --paths-to-mutate app/domain
+	# paths_to_mutate lives under [tool.mutmut] in backend/pyproject.toml.
+	cd $(BACKEND) && $(PY) -m mutmut run
 
 e2e:
 	@echo "e2e: Playwright suite not yet wired (issue #51 et al.) — placeholder target."
 	@cd frontend 2>/dev/null && [ -f package.json ] && npm run e2e || echo "frontend e2e not configured yet"
 
 schema:
-	@echo "schema: OpenAPI + frontend codegen drift check not yet wired — placeholder target."
+	$(PY) $(BACKEND)/scripts/dump_openapi.py --out $(BACKEND)/openapi.json
+	@if ! git diff --exit-code -- $(BACKEND)/openapi.json; then \
+		echo "ERROR: backend/openapi.json drifted. Commit the regenerated file."; \
+		exit 1; \
+	fi
+	@echo "schema: backend/openapi.json is in sync. (frontend codegen lands when openapi-typescript is wired.)"
 
 clean:
 	rm -f $(BACKEND)/coverage.xml $(BACKEND)/.coverage
