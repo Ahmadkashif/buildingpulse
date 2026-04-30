@@ -5,12 +5,11 @@ Validation failures live in `test_api_predictions_validation.py`.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi.testclient import TestClient
-
 from app.schemas import PredictionResponse
+from fastapi.testclient import TestClient
 
 
 class TestStatusAndShape:
@@ -68,14 +67,14 @@ class TestGeneratedAt:
     def test_generated_at_is_recent(
         self, client: TestClient, valid_request_body: dict[str, Any]
     ) -> None:
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         response = client.post("/api/predictions", json=valid_request_body)
-        after = datetime.now(timezone.utc)
+        after = datetime.now(UTC)
 
         raw = response.json()["data"]["generatedAt"]
         parsed = datetime.fromisoformat(raw)
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.replace(tzinfo=UTC)
 
         # Generated within the request window ±5s tolerance for slow CI.
         assert (before.timestamp() - 5) <= parsed.timestamp() <= (after.timestamp() + 5)

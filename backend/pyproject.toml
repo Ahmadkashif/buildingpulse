@@ -22,16 +22,26 @@ packages = ["app"]
 [project.optional-dependencies]
 test = [
     "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "pytest-asyncio>=0.23",
     "httpx>=0.27",
 ]
 dev = [
     "ruff>=0.6",
+    "mypy>=1.11",
     "pyright>=1.1.380",
+    "import-linter>=2.0",
+    "mutmut>=3.0",
+    "pytest>=8.3",
+    "pytest-cov>=5.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+asyncio_mode = "auto"
 addopts = [
     "-ra",
     "--strict-markers",
@@ -70,3 +80,52 @@ include = ["app", "tests"]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["app"]
+ignore_missing_imports = true
+
+# Per-layer coverage rubric — sourced from prd.md "Coverage rubric (per layer)".
+# pytest-cov can report coverage but cannot express per-path thresholds.
+# `scripts/cov_rubric.py` reads this section and enforces the targets after
+# `pytest --cov` produces `coverage.xml`. See `make test`.
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = [
+    "app/main.py",
+    "app/deps.py",
+    "app/__init__.py",
+    "app/*/__init__.py",
+    "app/**/__init__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "\\.\\.\\.",
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+# Per-layer thresholds enforced by scripts/cov_rubric.py.
+# Format: glob → {kind: branch|line|statement, min: 0.0–1.0}.
+[tool.coverage_rubric]
+"app/domain/**" = { kind = "branch", min = 1.00 }
+"app/policy/**" = { kind = "statement", min = 1.00 }
+"app/services/usecase/**" = { kind = "branch", min = 1.00 }
+"app/services/resource/**" = { kind = "branch", min = 1.00 }
+"app/repos/**" = { kind = "line", min = 1.00 }
+"app/integrations/**" = { kind = "line", min = 1.00 }
+"app/api/v1/**/controller.py" = { kind = "branch", min = 1.00 }
+"app/schemas/**" = { kind = "statement", min = 1.00 }
+
+[tool.mutmut]
+paths_to_mutate = "app/domain"

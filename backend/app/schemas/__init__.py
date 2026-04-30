@@ -87,11 +87,11 @@ class PredictionResponse(ApiModel):
 
 
 __all__ = [
+    "LL97",
     "AgeBand",
     "ApiModel",
     "Borough",
     "CreateBuildingInput",
-    "LL97",
     "Peer",
     "PeerCohort",
     "Prediction",

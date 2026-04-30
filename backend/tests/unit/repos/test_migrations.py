@@ -10,12 +10,11 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-
 from app.repos.connection import connect
 from app.repos.migrations import run_migrations
 
 
-@pytest.fixture()
+@pytest.fixture
 def conn() -> sqlite3.Connection:
     c = sqlite3.connect(":memory:")
     c.execute("PRAGMA foreign_keys = ON")
@@ -50,7 +49,9 @@ def test_runs_unapplied_migrations(conn: sqlite3.Connection, tmp_path: Path) -> 
     applied = run_migrations(conn, tmp_path)
 
     assert applied == ["0001_a.sql", "0002_b.sql"]
-    versions = [r[0] for r in conn.execute("SELECT version FROM schema_migrations ORDER BY version")]
+    versions = [
+        r[0] for r in conn.execute("SELECT version FROM schema_migrations ORDER BY version")
+    ]
     assert versions == ["0001_a.sql", "0002_b.sql"]
     tables = {
         r[0]

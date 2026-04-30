@@ -86,8 +86,8 @@ def configure_logging() -> None:
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
-            _add_request_id,
-            _add_trace_id,
+            _add_request_id,  # type: ignore[list-item]
+            _add_trace_id,  # type: ignore[list-item]
             structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
@@ -108,9 +108,7 @@ def configure_telemetry() -> None:
 
     otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
     if otlp_endpoint:
-        provider.add_span_processor(
-            BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint))
-        )
+        provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
 
     trace.set_tracer_provider(provider)
 
@@ -158,7 +156,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
 
 def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
-    return structlog.get_logger(name) if name else structlog.get_logger()
+    return structlog.get_logger(name) if name else structlog.get_logger()  # type: ignore[no-any-return]
 
 
 __all__ = [

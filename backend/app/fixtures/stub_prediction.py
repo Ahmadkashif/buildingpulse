@@ -1,7 +1,7 @@
 """Phase 1 stub `prediction`/`peer`/`ll97` payload.
 
 Hand-pinned to the Contract example in the PRD. The controller hands these
-blocks back verbatim until Phases 4–6 replace them with real outputs.
+blocks back verbatim until Phases 4-6 replace them with real outputs.
 """
 
 from typing import Any

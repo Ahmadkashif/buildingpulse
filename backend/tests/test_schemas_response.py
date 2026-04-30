@@ -5,9 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from pydantic import ValidationError
-
 from app.schemas import PredictionResponse
+from pydantic import ValidationError
 
 
 def _assert_field_error(exc: ValidationError, field_alias: str) -> None:
@@ -27,9 +26,7 @@ class TestAcceptsCanonical:
 
 
 class TestStrictMode:
-    def test_rejects_unknown_top_level_field(
-        self, valid_response_body: dict[str, Any]
-    ) -> None:
+    def test_rejects_unknown_top_level_field(self, valid_response_body: dict[str, Any]) -> None:
         body = {**valid_response_body, "extra": "nope"}
 
         with pytest.raises(ValidationError) as exc:
@@ -75,9 +72,7 @@ class TestInputNested:
 
 
 class TestPredictionNested:
-    def test_model_version_rejects_empty_string(
-        self, valid_response_body: dict[str, Any]
-    ) -> None:
+    def test_model_version_rejects_empty_string(self, valid_response_body: dict[str, Any]) -> None:
         body = {
             **valid_response_body,
             "prediction": {**valid_response_body["prediction"], "modelVersion": ""},
@@ -141,9 +136,7 @@ class TestPeerCohortSize:
 
 
 class TestPeerCohortAgeBand:
-    @pytest.mark.parametrize(
-        "age_band", ["pre-1950", "1950-1979", "1980-1999", "2000-plus"]
-    )
+    @pytest.mark.parametrize("age_band", ["pre-1950", "1950-1979", "1980-1999", "2000-plus"])
     def test_accepts_every_enum_value(
         self, valid_response_body: dict[str, Any], age_band: str
     ) -> None:
@@ -196,9 +189,7 @@ class TestLL97AtRiskStrict:
 
 
 class TestWireFormat:
-    def test_serializes_every_key_in_camelcase(
-        self, valid_response_body: dict[str, Any]
-    ) -> None:
+    def test_serializes_every_key_in_camelcase(self, valid_response_body: dict[str, Any]) -> None:
         model = PredictionResponse.model_validate(valid_response_body)
         dumped = model.model_dump(by_alias=True, mode="json")
 
@@ -213,9 +204,7 @@ class TestWireFormat:
 
         assert_no_snake(dumped)
 
-    def test_round_trip_validate_then_dump(
-        self, valid_response_body: dict[str, Any]
-    ) -> None:
+    def test_round_trip_validate_then_dump(self, valid_response_body: dict[str, Any]) -> None:
         model = PredictionResponse.model_validate(valid_response_body)
         dumped = model.model_dump(by_alias=True, mode="json")
         model2 = PredictionResponse.model_validate(dumped)

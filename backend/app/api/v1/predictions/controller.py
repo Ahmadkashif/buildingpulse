@@ -7,7 +7,7 @@ logic lives here; later phases replace the stub blocks with real outputs.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -39,7 +39,7 @@ class PredictionsController:
     def create(self, body: CreateBuildingInput) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "id": f"pred_{uuid4().hex}",
-            "generatedAt": datetime.now(timezone.utc).isoformat(),
+            "generatedAt": datetime.now(UTC).isoformat(),
             "input": body.model_dump(by_alias=True),
             "prediction": STUB["prediction"],
             "peer": STUB["peer"],

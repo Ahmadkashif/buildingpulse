@@ -17,6 +17,10 @@ backend/artifacts/
 backend/var/
 backend/.venv/
 backend/.coverage
+backend/coverage.xml
+backend/.mypy_cache/
+backend/mutants/
+backend/.mutmut-cache
 .claude/
 
 # Frontend
