@@ -1,0 +1,15 @@
+Largest Property Use Type,Borough,Largest Property Use Type - Gross Floor Area (ft²),Year Built,Number of Buildings,Site EUI (kBtu/ft²)
+Multifamily Housing,Brooklyn,45000,1925,1,87.3
+Office,Manhattan,120000,1980,1,65.0
+Hotel,Queens,80000,1995,1,95.1
+Retail Store,Bronx,30000,2005,1,55.4
+Hospital (General Medical & Surgical),Manhattan,250000,1965,2,210.0
+Mixed Use Property,Staten Island,15000,2010,1,40.2
+Multifamily Housing,Brooklyn,30000,1930,1,Not Available
+Office,Manhattan,50000,1975,1,0.5
+Retail,Queens,20000,2000,1,1500.0
+Warehouse,Brooklyn,40000,1990,1,75.0
+Multifamily Housing,Jersey City,30000,1950,1,80.0
+Office,Manhattan,,1985,1,70.0
+Multifamily Housing,Brooklyn,25000,Not Available,1,72.0
+Multifamily Housing,Manhattan,60000,1920,Not Available,90.0
