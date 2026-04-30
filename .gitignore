@@ -32,6 +32,10 @@ frontend/.env
 frontend/.env.local
 frontend/.vercel/
 frontend/.turbo/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
 
 # Claude
 .claude-personal/

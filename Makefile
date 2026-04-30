@@ -38,16 +38,16 @@ mutate:
 	cd $(BACKEND) && $(PY) -m mutmut run
 
 e2e:
-	@echo "e2e: Playwright suite not yet wired (issue #51 et al.) — placeholder target."
-	@cd frontend 2>/dev/null && [ -f package.json ] && npm run e2e || echo "frontend e2e not configured yet"
+	cd frontend && npm run e2e
 
 schema:
 	$(PY) $(BACKEND)/scripts/dump_openapi.py --out $(BACKEND)/openapi.json
-	@if ! git diff --exit-code -- $(BACKEND)/openapi.json; then \
-		echo "ERROR: backend/openapi.json drifted. Commit the regenerated file."; \
+	cd frontend && npm run codegen --silent
+	@if ! git diff --exit-code -- $(BACKEND)/openapi.json frontend/src/types/api.ts; then \
+		echo "ERROR: OpenAPI schema or generated frontend types drifted. Commit the regenerated files."; \
 		exit 1; \
 	fi
-	@echo "schema: backend/openapi.json is in sync. (frontend codegen lands when openapi-typescript is wired.)"
+	@echo "schema: backend/openapi.json and frontend/src/types/api.ts are in sync."
 
 clean:
 	rm -f $(BACKEND)/coverage.xml $(BACKEND)/.coverage
