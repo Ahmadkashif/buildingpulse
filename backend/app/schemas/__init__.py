@@ -1,3 +1,9 @@
+"""API boundary schemas (Pydantic).
+
+Symbols are kept here while `requests.py` and `responses.py` are split out
+in a later phase. Tests and controllers import from `app.schemas` directly.
+"""
+
 from datetime import datetime
 from typing import Literal
 
@@ -78,3 +84,17 @@ class PredictionResponse(ApiModel):
     prediction: Prediction
     peer: Peer
     ll97: LL97
+
+
+__all__ = [
+    "AgeBand",
+    "ApiModel",
+    "Borough",
+    "CreateBuildingInput",
+    "LL97",
+    "Peer",
+    "PeerCohort",
+    "Prediction",
+    "PredictionResponse",
+    "PropertyType",
+]
