@@ -13,6 +13,7 @@ import { InfoCard } from "@/components/report/info-card";
 import { InsightCard } from "@/components/report/insight-card";
 import { ActionColumn } from "@/components/report/action-column";
 import { ExportDialog } from "@/components/report/export-dialog";
+import { SponsorStrip } from "@/components/report/sponsor-strip";
 import { usePrediction } from "@/hooks/use-prediction";
 import type {
   BuildingBorough,
@@ -77,6 +78,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="flex flex-col gap-8">
+      <SponsorStrip />
       <PageHeader
         title={pageTitle}
         description="Predicted Site Energy Use Intensity, peer cohort ranking, and LL97 compliance outlook."
