@@ -76,6 +76,33 @@ def valid_response_body() -> dict[str, Any]:
     }
 
 
+SPONSOR_ENV_DEFAULTS: dict[str, str] = {
+    "SPONSOR_ID": "acme-energy",
+    "SPONSOR_NAME": "Acme Energy",
+    "SPONSOR_LOGO_URL": "https://cdn.example.com/acme-logo.svg",
+    "SPONSOR_CTA_LABEL": "Talk to a contractor",
+    "SPONSOR_CTA_URL": "https://acme-energy.example.com/contact",
+    "SPONSOR_LEAD_EMAIL": "leads@acme-energy.example.com",
+}
+
+
+@pytest.fixture(autouse=True)
+def _sponsor_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Provide sponsor env-var defaults so the FastAPI lifespan can boot.
+
+    Missing-env failure tests can override with `monkeypatch.delenv(...)`
+    before constructing the app.
+    """
+    for var, value in SPONSOR_ENV_DEFAULTS.items():
+        monkeypatch.setenv(var, value)
+    monkeypatch.delenv("SPONSOR_LEAD_WEBHOOK_URL", raising=False)
+    # Reset the AppConfig singleton between tests so env-var changes inside
+    # a test take effect when the next FastAPI lifespan boots.
+    from app.deps import _reset_app_config
+
+    _reset_app_config()
+
+
 @pytest.fixture
 def client(tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> Any:
     """FastAPI TestClient with a per-test SQLite DB and lifespan-applied migrations."""

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Inter } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
 import { MSWProvider } from "@/providers/msw-provider";
+import { UnlockProvider } from "@/providers/unlock-provider";
 import { AppShell } from "@/components/shell/app-shell";
 import "./globals.css";
 
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body className="min-h-full">
         <MSWProvider>
           <QueryProvider>
-            <AppShell>{children}</AppShell>
+            <UnlockProvider>
+              <AppShell>{children}</AppShell>
+            </UnlockProvider>
           </QueryProvider>
         </MSWProvider>
       </body>

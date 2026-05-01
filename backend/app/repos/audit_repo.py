@@ -9,6 +9,36 @@ class AuditRepo:
     def __init__(self, conn: sqlite3.Connection) -> None:
         self._conn = conn
 
+    def prediction_exists(self, prediction_id: str) -> bool:
+        row = self._conn.execute(
+            "SELECT 1 FROM audit_log "
+            "WHERE event_type = 'prediction_generated' AND prediction_id = ? "
+            "LIMIT 1",
+            (prediction_id,),
+        ).fetchone()
+        return row is not None
+
+    def scenario_selected_exists_since(
+        self,
+        *,
+        prediction_id: str,
+        scenario_id: str,
+        since_iso: str,
+    ) -> bool:
+        """True if a ``scenario_selected`` row for this (prediction, scenario)
+        was written at or after ``since_iso``. Used by the select endpoint
+        to dedupe rapid double-clicks server-side."""
+        row = self._conn.execute(
+            "SELECT 1 FROM audit_log "
+            "WHERE event_type = 'scenario_selected' "
+            "AND prediction_id = ? "
+            "AND occurred_at >= ? "
+            "AND json_extract(payload_json, '$.scenario_id') = ? "
+            "LIMIT 1",
+            (prediction_id, since_iso, scenario_id),
+        ).fetchone()
+        return row is not None
+
     def insert(
         self,
         *,

@@ -1,3 +1,6 @@
-"""Package placeholder."""
+"""Retrofit recomputation domain package."""
 
-__all__: list[str] = []
+from app.domain.retrofits.engine import apply_scenarios
+from app.domain.retrofits.types import Scenario
+
+__all__ = ["Scenario", "apply_scenarios"]
