@@ -112,7 +112,7 @@ def test_unknown_property_type_raises_typed_error() -> None:
 
 
 def test_non_positive_gross_floor_area_raises_typed_error() -> None:
-    with pytest.raises(InvalidGrossFloorAreaError):
+    with pytest.raises(InvalidGrossFloorAreaError, match="gross_floor_area_sqft"):
         compute(PropertyType.OFFICE, 100.0, 0.0, today=date(2026, 1, 1))
-    with pytest.raises(InvalidGrossFloorAreaError):
+    with pytest.raises(InvalidGrossFloorAreaError, match="-1"):
         compute(PropertyType.OFFICE, 100.0, -1.0, today=date(2026, 1, 1))
