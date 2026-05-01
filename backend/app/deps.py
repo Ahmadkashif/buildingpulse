@@ -56,6 +56,7 @@ from app.services.resource.audit.service import AuditService
 from app.services.resource.lead.service import LeadResourceService
 from app.services.resource.notification.service import NotificationResourceService
 from app.services.resource.prediction.service import PredictionResourceService
+from app.services.resource.scenario.service import ScenarioResourceService
 from app.services.resource.sponsor.service import SponsorResourceService
 from app.services.usecase.lead_capture.service import LeadCaptureUseCaseService
 
@@ -283,6 +284,11 @@ def get_prediction_service() -> PredictionResourceService:
     return PredictionResourceService(get_artifact_registry(), get_peer_cohorts_registry())
 
 
+def get_scenario_service() -> ScenarioResourceService:
+    """FastAPI dependency: yields the ScenarioResourceService."""
+    return ScenarioResourceService()
+
+
 async def get_audit_service() -> AsyncIterator[AuditService]:
     """FastAPI dependency: yields an AuditService backed by a per-request connection."""
     conn = connect()
@@ -339,6 +345,7 @@ __all__ = [
     "get_peer_cohorts_registry",
     "get_prediction_service",
     "get_request_id",
+    "get_scenario_service",
     "get_sponsor_service",
     "get_trace_id",
     "init_app_config",

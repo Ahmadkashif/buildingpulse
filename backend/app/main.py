@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.leads import router as leads_router
 from app.api.v1.predictions import router as predictions_router
+from app.api.v1.scenarios import router as scenarios_router
 from app.api.v1.sponsor import router as sponsor_router
 from app.deps import (
     RequestIdMiddleware,
@@ -70,6 +71,7 @@ app.add_middleware(
 instrument_app(app)
 
 app.include_router(predictions_router, prefix="/api")
+app.include_router(scenarios_router, prefix="/api")
 app.include_router(sponsor_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
 

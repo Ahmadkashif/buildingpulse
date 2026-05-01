@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create */
+        post: operations["create_api_leads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/predictions": {
         parameters: {
             query?: never;
@@ -18,6 +35,58 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/predictions/{prediction_id}/scenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List */
+        get: operations["list_api_predictions__prediction_id__scenarios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sponsor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_api_sponsor_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sponsor/cta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cta */
+        get: operations["cta_api_sponsor_cta_head"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /** Cta */
+        head: operations["cta_api_sponsor_cta_head"];
         patch?: never;
         trace?: never;
     };
@@ -41,6 +110,48 @@ export interface components {
              * @enum {string}
              */
             propertyType: "multifamily-housing" | "office" | "hotel" | "retail" | "hospital" | "mixed-use";
+            /** Yearbuilt */
+            yearBuilt: number;
+        };
+        /** CreateLeadInput */
+        CreateLeadInput: {
+            /** Atrisk */
+            atRisk: boolean;
+            /**
+             * Borough
+             * @enum {string}
+             */
+            borough: "manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island";
+            /**
+             * Consentgiven
+             * @constant
+             */
+            consentGiven: true;
+            /** Email */
+            email: string;
+            /** Grossfloorareasqft */
+            grossFloorAreaSqft: number;
+            /** Name */
+            name: string;
+            /** Phone */
+            phone: string;
+            /** Predictedeui */
+            predictedEui: number;
+            /** Predictionid */
+            predictionId: string;
+            /** Projectedfineusd */
+            projectedFineUsd: number;
+            /**
+             * Propertytype
+             * @enum {string}
+             */
+            propertyType: "multifamily-housing" | "office" | "hotel" | "retail" | "hospital" | "mixed-use";
+            /** Reporturl */
+            reportUrl: string;
+            /** Role */
+            role: string;
+            /** Scenarioid */
+            scenarioId?: string | null;
             /** Yearbuilt */
             yearBuilt: number;
         };
@@ -70,6 +181,15 @@ export interface components {
             projectedAnnualFineUsd2024: number;
             /** Projectedannualfineusd2030 */
             projectedAnnualFineUsd2030: number;
+        };
+        /** LeadCreated */
+        LeadCreated: {
+            /** Id */
+            id: string;
+        };
+        /** LeadResponseEnvelope */
+        LeadResponseEnvelope: {
+            data: components["schemas"]["LeadCreated"];
         };
         /** Peer */
         Peer: {
@@ -126,6 +246,51 @@ export interface components {
         PredictionResponseEnvelope: {
             data: components["schemas"]["PredictionResponse"];
         };
+        /** ScenarioPublic */
+        ScenarioPublic: {
+            /** Citation */
+            citation: string;
+            /** Costhigh */
+            costHigh: number;
+            /** Costlow */
+            costLow: number;
+            /** Description */
+            description: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Recomputedfine2024 */
+            recomputedFine2024: number;
+            /** Recomputedfine2030 */
+            recomputedFine2030: number;
+            /** Recomputedfineseries */
+            recomputedFineSeries: components["schemas"]["FineYear"][];
+            /** Reductionpct */
+            reductionPct: number;
+        };
+        /** ScenariosResponseEnvelope */
+        ScenariosResponseEnvelope: {
+            /** Data */
+            data: components["schemas"]["ScenarioPublic"][];
+        };
+        /** SponsorPublic */
+        SponsorPublic: {
+            /** Ctalabel */
+            ctaLabel: string;
+            /** Ctaurl */
+            ctaUrl: string;
+            /** Id */
+            id: string;
+            /** Logourl */
+            logoUrl: string;
+            /** Name */
+            name: string;
+        };
+        /** SponsorResponseEnvelope */
+        SponsorResponseEnvelope: {
+            data: components["schemas"]["SponsorPublic"];
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -148,6 +313,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    create_api_leads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLeadInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadResponseEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_api_predictions_post: {
         parameters: {
             query?: never;
@@ -169,6 +367,121 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PredictionResponseEnvelope"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_api_predictions__prediction_id__scenarios_get: {
+        parameters: {
+            query: {
+                propertyType: "multifamily-housing" | "office" | "hotel" | "retail" | "hospital" | "mixed-use";
+                predictedEui: number;
+                grossFloorAreaSqft: number;
+            };
+            header?: never;
+            path: {
+                prediction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenariosResponseEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_api_sponsor_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SponsorResponseEnvelope"];
+                };
+            };
+        };
+    };
+    cta_api_sponsor_cta_head: {
+        parameters: {
+            query: {
+                prediction_id: string;
+                scenario_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cta_api_sponsor_cta_head: {
+        parameters: {
+            query: {
+                prediction_id: string;
+                scenario_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

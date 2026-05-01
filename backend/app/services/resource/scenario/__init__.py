@@ -1,3 +1,5 @@
-"""Package placeholder."""
+"""Scenario resource service package."""
 
-__all__: list[str] = []
+from app.services.resource.scenario.service import ScenarioResourceService
+
+__all__ = ["ScenarioResourceService"]

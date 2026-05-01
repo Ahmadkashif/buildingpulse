@@ -458,6 +458,95 @@
         "title": "PredictionResponseEnvelope",
         "type": "object"
       },
+      "ScenarioPublic": {
+        "additionalProperties": false,
+        "properties": {
+          "citation": {
+            "minLength": 1,
+            "title": "Citation",
+            "type": "string"
+          },
+          "costHigh": {
+            "minimum": 0.0,
+            "title": "Costhigh",
+            "type": "number"
+          },
+          "costLow": {
+            "minimum": 0.0,
+            "title": "Costlow",
+            "type": "number"
+          },
+          "description": {
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "recomputedFine2024": {
+            "minimum": 0.0,
+            "title": "Recomputedfine2024",
+            "type": "number"
+          },
+          "recomputedFine2030": {
+            "minimum": 0.0,
+            "title": "Recomputedfine2030",
+            "type": "number"
+          },
+          "recomputedFineSeries": {
+            "items": {
+              "$ref": "#/components/schemas/FineYear"
+            },
+            "minItems": 1,
+            "title": "Recomputedfineseries",
+            "type": "array"
+          },
+          "reductionPct": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "Reductionpct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "reductionPct",
+          "costLow",
+          "costHigh",
+          "recomputedFineSeries",
+          "recomputedFine2024",
+          "recomputedFine2030",
+          "citation"
+        ],
+        "title": "ScenarioPublic",
+        "type": "object"
+      },
+      "ScenariosResponseEnvelope": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioPublic"
+            },
+            "title": "Data",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ScenariosResponseEnvelope",
+        "type": "object"
+      },
       "SponsorPublic": {
         "additionalProperties": false,
         "properties": {
@@ -633,6 +722,83 @@
         "summary": "Create"
       }
     },
+    "/api/predictions/{prediction_id}/scenarios": {
+      "get": {
+        "operationId": "list_api_predictions__prediction_id__scenarios_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "multifamily-housing",
+                "office",
+                "hotel",
+                "retail",
+                "hospital",
+                "mixed-use"
+              ],
+              "title": "Propertytype",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "predictedEui",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0.0,
+              "title": "Predictedeui",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grossFloorAreaSqft",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0.0,
+              "title": "Grossfloorareasqft",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenariosResponseEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List"
+      }
+    },
     "/api/sponsor": {
       "get": {
         "operationId": "get_api_sponsor_get",
@@ -649,6 +815,104 @@
           }
         },
         "summary": "Get"
+      }
+    },
+    "/api/sponsor/cta": {
+      "get": {
+        "operationId": "cta_api_sponsor_cta_head",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scenario_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cta"
+      },
+      "head": {
+        "operationId": "cta_api_sponsor_cta_head",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scenario_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cta"
       }
     }
   }
