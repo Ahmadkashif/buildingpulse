@@ -59,6 +59,10 @@ from app.services.resource.prediction.service import PredictionResourceService
 from app.services.resource.scenario.service import ScenarioResourceService
 from app.services.resource.sponsor.service import SponsorResourceService
 from app.services.usecase.lead_capture.service import LeadCaptureUseCaseService
+from app.services.usecase.pdf_generation.service import (
+    PdfGenerationUseCaseService,
+    render_pdf_with_weasyprint,
+)
 
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
@@ -304,6 +308,23 @@ def _utc_now() -> Any:
     return datetime.now(UTC)
 
 
+async def get_pdf_generation_use_case() -> AsyncIterator[PdfGenerationUseCaseService]:
+    """FastAPI dependency: yields a fully wired PdfGenerationUseCaseService."""
+    conn = connect()
+    try:
+        lead_service = LeadResourceService(LeadRepo(conn), now=_utc_now)
+        prediction_service = PredictionResourceService(
+            get_artifact_registry(), get_peer_cohorts_registry()
+        )
+        yield PdfGenerationUseCaseService(
+            lead_service=lead_service,
+            prediction_service=prediction_service,
+            html_to_pdf=render_pdf_with_weasyprint,
+        )
+    finally:
+        conn.close()
+
+
 async def get_lead_capture_use_case() -> AsyncIterator[LeadCaptureUseCaseService]:
     """FastAPI dependency: yields a fully wired LeadCaptureUseCaseService."""
     config = get_app_config()
@@ -342,6 +363,7 @@ __all__ = [
     "get_audit_service",
     "get_lead_capture_use_case",
     "get_logger",
+    "get_pdf_generation_use_case",
     "get_peer_cohorts_registry",
     "get_prediction_service",
     "get_request_id",

@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.leads import router as leads_router
+from app.api.v1.pdf import router as pdf_router
 from app.api.v1.predictions import router as predictions_router
 from app.api.v1.scenarios import router as scenarios_router
 from app.api.v1.sponsor import router as sponsor_router
@@ -74,5 +75,6 @@ app.include_router(predictions_router, prefix="/api")
 app.include_router(scenarios_router, prefix="/api")
 app.include_router(sponsor_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
+app.include_router(pdf_router, prefix="/api")
 
 __all__ = ["app"]
