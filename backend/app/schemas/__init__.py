@@ -56,8 +56,8 @@ class Prediction(ApiModel):
 
 class PeerCohort(ApiModel):
     property_type: PropertyType
-    borough: Borough
-    age_band: AgeBand
+    borough: Borough | None
+    age_band: AgeBand | None
 
 
 class Peer(ApiModel):

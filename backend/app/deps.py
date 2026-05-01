@@ -47,6 +47,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.repos.artifact_registry import ArtifactRegistry
 from app.repos.audit_repo import AuditRepo
 from app.repos.connection import connect
+from app.repos.peer_cohorts_registry import PeerCohortsRegistry
 from app.services.resource.audit.service import AuditService
 from app.services.resource.prediction.service import PredictionResourceService
 
@@ -60,6 +61,7 @@ _request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 _telemetry_configured = False
 _logging_configured = False
 _artifact_registry: ArtifactRegistry | None = None
+_peer_cohorts_registry: PeerCohortsRegistry | None = None
 
 
 def _resolve_artifacts_dir() -> str:
@@ -92,6 +94,33 @@ def _reset_artifact_registry() -> None:
     """Test-only hook: clear the cached registry so a new one can be built."""
     global _artifact_registry
     _artifact_registry = None
+
+
+def init_peer_cohorts_registry(
+    artifacts_dir: str | None = None,
+) -> PeerCohortsRegistry:
+    """Build the process-wide PeerCohortsRegistry. Idempotent within a process."""
+    global _peer_cohorts_registry
+    if _peer_cohorts_registry is None:
+        _peer_cohorts_registry = PeerCohortsRegistry(
+            artifacts_dir or _resolve_artifacts_dir()
+        )
+    return _peer_cohorts_registry
+
+
+def get_peer_cohorts_registry() -> PeerCohortsRegistry:
+    """FastAPI dependency: yields the process-wide PeerCohortsRegistry."""
+    if _peer_cohorts_registry is None:
+        raise RuntimeError(
+            "PeerCohortsRegistry not initialized; lifespan startup did not run"
+        )
+    return _peer_cohorts_registry
+
+
+def _reset_peer_cohorts_registry() -> None:
+    """Test-only hook: clear the cached peer cohorts registry."""
+    global _peer_cohorts_registry
+    _peer_cohorts_registry = None
 
 
 def _add_request_id(_logger: Any, _name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
@@ -218,7 +247,9 @@ def get_trace_id() -> str:
 
 def get_prediction_service() -> PredictionResourceService:
     """FastAPI dependency: yields the prediction service backed by the registry."""
-    return PredictionResourceService(get_artifact_registry())
+    return PredictionResourceService(
+        get_artifact_registry(), get_peer_cohorts_registry()
+    )
 
 
 async def get_audit_service() -> AsyncIterator[AuditService]:
@@ -240,9 +271,11 @@ __all__ = [
     "get_artifact_registry",
     "get_audit_service",
     "get_logger",
+    "get_peer_cohorts_registry",
     "get_prediction_service",
     "get_request_id",
     "get_trace_id",
     "init_artifact_registry",
+    "init_peer_cohorts_registry",
     "instrument_app",
 ]

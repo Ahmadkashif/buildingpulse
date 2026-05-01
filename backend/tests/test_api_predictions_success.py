@@ -96,21 +96,12 @@ class TestGeneratedAt:
 
 
 class TestStubFieldsPassThrough:
-    """`peer` and `ll97` still echo the stub verbatim; `prediction` is now real.
+    """`ll97` still echoes the stub verbatim; `prediction` and `peer` are now real.
 
-    Phase 5 will replace `peer`; Phase 6 replaces `ll97`. Those tests must
-    be updated — not deleted — when each phase lands. The `prediction`
-    block was replaced in Phase 4 (issue #57); see ``TestRealPrediction``
-    below for the live invariants.
+    Phase 6 will replace `ll97`. That test must be updated — not deleted —
+    when the phase lands. The `prediction` block was replaced in Phase 4
+    (issue #57); the `peer` block was replaced in Phase 5 (issue #60).
     """
-
-    def test_peer_block_equals_stub(
-        self, client: TestClient, valid_request_body: dict[str, Any]
-    ) -> None:
-        from app.fixtures.stub_prediction import STUB  # type: ignore[attr-defined]
-
-        response = client.post("/api/predictions", json=valid_request_body)
-        assert response.json()["data"]["peer"] == STUB["peer"]
 
     def test_ll97_block_equals_stub(
         self, client: TestClient, valid_request_body: dict[str, Any]

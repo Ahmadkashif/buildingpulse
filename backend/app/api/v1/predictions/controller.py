@@ -1,11 +1,11 @@
 """POST /api/predictions — controller.
 
 Calls the real prediction resource service to produce the `prediction`
-block (point estimate + interval + model version) and leaves `peer` and
-`ll97` on the canonical fixture until their own resource services land.
-The controller still records a ``PredictionGenerated`` audit event
-tagged with the same `request_id` that appears on the request's
-structured log line.
+block (point estimate + interval + model version) and the `peer` block
+(percentile, p25/median/p75, cohort echo). `ll97` stays on the canonical
+fixture until its own resource service lands. The controller still
+records a ``PredictionGenerated`` audit event tagged with the same
+`request_id` that appears on the request's structured log line.
 """
 
 from __future__ import annotations
@@ -59,13 +59,15 @@ class PredictionsController:
         prediction_id = f"pred_{uuid4().hex}"
         generated_at = datetime.now(UTC)
 
-        eui = prediction_service.predict(
+        result = prediction_service.predict(
             property_type=body.property_type,
             borough=body.borough,
             gross_floor_area_sqft=body.gross_floor_area_sqft,
             year_built=body.year_built,
             number_of_buildings=body.number_of_buildings,
         )
+        eui = result.eui
+        peer = result.peer
 
         payload: dict[str, Any] = {
             "id": prediction_id,
@@ -77,7 +79,18 @@ class PredictionsController:
                 "intervalHigh": eui.high,
                 "modelVersion": eui.model_version,
             },
-            "peer": STUB["peer"],
+            "peer": {
+                "cohort": {
+                    "propertyType": peer.cohort.property_type,
+                    "borough": peer.cohort.borough,
+                    "ageBand": peer.cohort.age_band,
+                },
+                "cohortSize": peer.cohort_size,
+                "medianSiteEui": peer.median,
+                "p25SiteEui": peer.p25,
+                "p75SiteEui": peer.p75,
+                "percentile": peer.percentile,
+            },
             "ll97": STUB["ll97"],
         }
 

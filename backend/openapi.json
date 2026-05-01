@@ -148,25 +148,39 @@
         "additionalProperties": false,
         "properties": {
           "ageBand": {
-            "enum": [
-              "pre-1950",
-              "1950-1979",
-              "1980-1999",
-              "2000-plus"
+            "anyOf": [
+              {
+                "enum": [
+                  "pre-1950",
+                  "1950-1979",
+                  "1980-1999",
+                  "2000-plus"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Ageband",
-            "type": "string"
+            "title": "Ageband"
           },
           "borough": {
-            "enum": [
-              "manhattan",
-              "brooklyn",
-              "queens",
-              "bronx",
-              "staten-island"
+            "anyOf": [
+              {
+                "enum": [
+                  "manhattan",
+                  "brooklyn",
+                  "queens",
+                  "bronx",
+                  "staten-island"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Borough",
-            "type": "string"
+            "title": "Borough"
           },
           "propertyType": {
             "enum": [
