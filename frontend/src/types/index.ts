@@ -7,6 +7,7 @@ export type {
 } from "./models/building";
 export type {
   CohortAgeBand,
+  FineYear,
   InsightBadge,
   LL97,
   Peer,

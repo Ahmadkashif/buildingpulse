@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shell/page-header";
 import { KpiTile } from "@/components/report/kpi-tile";
 import { BarChartCard } from "@/components/report/bar-chart-card";
+import { FineSeriesChart } from "@/components/report/fine-series-chart";
 import { InfoCard } from "@/components/report/info-card";
 import { InsightCard } from "@/components/report/insight-card";
 import { ActionColumn } from "@/components/report/action-column";
@@ -100,6 +101,12 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             description={`Your building vs. ${prediction.peer.cohortSize.toLocaleString()} similar buildings in ${BOROUGH_LABELS[prediction.peer.cohort.borough]}.`}
             data={peerChart}
             legend={{ primary: "Peer Cohort", secondary: "Your Building" }}
+          />
+
+          <FineSeriesChart
+            title="LL97 Fine Outlook"
+            description="Projected annual fines across the 2024–2029 and 2030–2034 compliance periods."
+            data={prediction.ll97.fineSeries}
           />
 
           <section aria-label="Insights" className="flex flex-col gap-4">
