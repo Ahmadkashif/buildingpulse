@@ -117,5 +117,15 @@ class LeadRepo:
             prediction_id=prediction_id, email=email
         )
 
+    def delete_by_prediction_and_email(
+        self, *, prediction_id: str, email: str
+    ) -> int:
+        cursor = self._conn.execute(
+            "DELETE FROM leads WHERE prediction_id = ? AND email = ?",
+            (prediction_id, email),
+        )
+        self._conn.commit()
+        return cursor.rowcount
+
 
 __all__ = ["LeadRepo"]
