@@ -60,7 +60,7 @@ export function PredictEuiForm() {
 
     predict.mutate(input, {
       onSuccess: (response) => {
-        router.push(`/forecasting/predicting?predictionId=${response.data.id}`);
+        router.push(`/report/predicting?predictionId=${response.data.id}`);
       },
     });
   };

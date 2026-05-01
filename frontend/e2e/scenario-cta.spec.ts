@@ -87,7 +87,7 @@ test("Choose this scenario fires ScenarioSelected then redirects to sponsor CTA 
     }
   });
 
-  await page.goto("/forecasting/report/pred_scen_e2e");
+  await page.goto("/report/pred_scen_e2e");
 
   // Unlock by capturing a lead so the scenarios card is visible.
   const seeRetrofit = page.getByTestId("cta-see-retrofit-options");

@@ -76,7 +76,7 @@ test("Export PDF button issues a real download once the report is unlocked", asy
     });
   });
 
-  await page.goto(`/forecasting/report/${PREDICTION_FIXTURE.id}`);
+  await page.goto(`/report/${PREDICTION_FIXTURE.id}`);
 
   const exportCta = page.getByTestId("cta-export-pdf");
   await expect(exportCta).toBeVisible({ timeout: 30_000 });

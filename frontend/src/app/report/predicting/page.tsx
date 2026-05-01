@@ -13,7 +13,7 @@ function PredictingInner() {
   const onComplete = React.useCallback(() => {
     if (!predictionId) return;
     const id = setTimeout(() => {
-      router.push(`/forecasting/report/${predictionId}`);
+      router.push(`/report/${predictionId}`);
     }, 600);
     return () => clearTimeout(id);
   }, [predictionId, router]);

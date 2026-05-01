@@ -58,7 +58,7 @@ test("prediction report renders the LL97 step at 2030", async ({ page }) => {
     });
   });
 
-  await page.goto("/forecasting/report/pred_e2e_01");
+  await page.goto("/report/pred_e2e_01");
 
   await expect(page.getByTestId("ll97-fine-series-chart")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("ll97-step-2030")).toBeVisible();

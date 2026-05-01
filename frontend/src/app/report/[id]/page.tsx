@@ -315,8 +315,8 @@ function buildInsights(p: PredictionResponse): PredictionInsight[] {
 function buildLeadContext(id: string, p: PredictionResponse): LeadModalContext {
   const reportUrl =
     typeof window !== "undefined" && window.location
-      ? `${window.location.origin}/forecasting/report/${id}`
-      : `/forecasting/report/${id}`;
+      ? `${window.location.origin}/report/${id}`
+      : `/report/${id}`;
   return {
     predictionId: id,
     propertyType: p.input.propertyType,
