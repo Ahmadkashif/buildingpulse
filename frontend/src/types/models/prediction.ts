@@ -25,12 +25,18 @@ export interface Peer {
   percentile: number;
 }
 
+export interface FineYear {
+  year: number;
+  projectedAnnualFineUsd: number;
+}
+
 export interface LL97 {
   capKbtuPerSqft2024To2029: number;
   capKbtuPerSqft2030To2034: number;
   projectedAnnualFineUsd2024: number;
   projectedAnnualFineUsd2030: number;
   atRisk: boolean;
+  fineSeries: FineYear[];
 }
 
 export interface PredictionResponse {

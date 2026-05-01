@@ -26,6 +26,7 @@ backend/.mutmut-cache
 # Frontend
 frontend/node_modules/
 frontend/.next/
+frontend/.next-flag-off/
 frontend/dist/
 frontend/build/
 frontend/.env

@@ -1,6 +1,92 @@
 {
   "components": {
     "schemas": {
+      "AddressLookupResponseEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AddressMatchPublic"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "AddressLookupResponseEnvelope",
+        "type": "object"
+      },
+      "AddressMatchPublic": {
+        "additionalProperties": false,
+        "properties": {
+          "addressNormalized": {
+            "minLength": 1,
+            "title": "Addressnormalized",
+            "type": "string"
+          },
+          "addressRaw": {
+            "minLength": 1,
+            "title": "Addressraw",
+            "type": "string"
+          },
+          "bbl": {
+            "minLength": 1,
+            "title": "Bbl",
+            "type": "string"
+          },
+          "borough": {
+            "minLength": 1,
+            "title": "Borough",
+            "type": "string"
+          },
+          "confidence": {
+            "minLength": 1,
+            "title": "Confidence",
+            "type": "string"
+          },
+          "grossFloorAreaSqft": {
+            "minimum": 0.0,
+            "title": "Grossfloorareasqft",
+            "type": "integer"
+          },
+          "numberOfBuildings": {
+            "minimum": 0.0,
+            "title": "Numberofbuildings",
+            "type": "integer"
+          },
+          "propertyType": {
+            "minLength": 1,
+            "title": "Propertytype",
+            "type": "string"
+          },
+          "siteEui": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Siteeui"
+          },
+          "yearBuilt": {
+            "minimum": 0.0,
+            "title": "Yearbuilt",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bbl",
+          "addressRaw",
+          "addressNormalized",
+          "propertyType",
+          "borough",
+          "grossFloorAreaSqft",
+          "yearBuilt",
+          "numberOfBuildings",
+          "confidence"
+        ],
+        "title": "AddressMatchPublic",
+        "type": "object"
+      },
       "CreateBuildingInput": {
         "additionalProperties": false,
         "properties": {
@@ -56,6 +142,146 @@
         "title": "CreateBuildingInput",
         "type": "object"
       },
+      "CreateLeadInput": {
+        "additionalProperties": false,
+        "properties": {
+          "atRisk": {
+            "title": "Atrisk",
+            "type": "boolean"
+          },
+          "borough": {
+            "enum": [
+              "manhattan",
+              "brooklyn",
+              "queens",
+              "bronx",
+              "staten-island"
+            ],
+            "title": "Borough",
+            "type": "string"
+          },
+          "consentGiven": {
+            "const": true,
+            "title": "Consentgiven",
+            "type": "boolean"
+          },
+          "email": {
+            "minLength": 1,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "grossFloorAreaSqft": {
+            "minimum": 0.0,
+            "title": "Grossfloorareasqft",
+            "type": "number"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "phone": {
+            "minLength": 1,
+            "pattern": "^\\+?[0-9][0-9 \\-().]{6,}$",
+            "title": "Phone",
+            "type": "string"
+          },
+          "predictedEui": {
+            "minimum": 0.0,
+            "title": "Predictedeui",
+            "type": "number"
+          },
+          "predictionId": {
+            "minLength": 1,
+            "title": "Predictionid",
+            "type": "string"
+          },
+          "projectedFineUsd": {
+            "minimum": 0.0,
+            "title": "Projectedfineusd",
+            "type": "number"
+          },
+          "propertyType": {
+            "enum": [
+              "multifamily-housing",
+              "office",
+              "hotel",
+              "retail",
+              "hospital",
+              "mixed-use"
+            ],
+            "title": "Propertytype",
+            "type": "string"
+          },
+          "reportUrl": {
+            "minLength": 1,
+            "title": "Reporturl",
+            "type": "string"
+          },
+          "role": {
+            "minLength": 1,
+            "title": "Role",
+            "type": "string"
+          },
+          "scenarioId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenarioid"
+          },
+          "yearBuilt": {
+            "maximum": 2026.0,
+            "minimum": 1800.0,
+            "title": "Yearbuilt",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "predictionId",
+          "name",
+          "email",
+          "phone",
+          "role",
+          "consentGiven",
+          "propertyType",
+          "borough",
+          "grossFloorAreaSqft",
+          "yearBuilt",
+          "predictedEui",
+          "projectedFineUsd",
+          "atRisk",
+          "reportUrl"
+        ],
+        "title": "CreateLeadInput",
+        "type": "object"
+      },
+      "FineYear": {
+        "additionalProperties": false,
+        "properties": {
+          "projectedAnnualFineUsd": {
+            "title": "Projectedannualfineusd",
+            "type": "number"
+          },
+          "year": {
+            "maximum": 2034.0,
+            "minimum": 2024.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "projectedAnnualFineUsd"
+        ],
+        "title": "FineYear",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -84,6 +310,14 @@
             "title": "Capkbtupersqft2030To2034",
             "type": "number"
           },
+          "fineSeries": {
+            "items": {
+              "$ref": "#/components/schemas/FineYear"
+            },
+            "minItems": 1,
+            "title": "Fineseries",
+            "type": "array"
+          },
           "projectedAnnualFineUsd2024": {
             "title": "Projectedannualfineusd2024",
             "type": "number"
@@ -98,9 +332,37 @@
           "capKbtuPerSqft2030To2034",
           "projectedAnnualFineUsd2024",
           "projectedAnnualFineUsd2030",
-          "atRisk"
+          "atRisk",
+          "fineSeries"
         ],
         "title": "LL97",
+        "type": "object"
+      },
+      "LeadCreated": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "LeadCreated",
+        "type": "object"
+      },
+      "LeadResponseEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LeadCreated"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "LeadResponseEnvelope",
         "type": "object"
       },
       "Peer": {
@@ -148,25 +410,39 @@
         "additionalProperties": false,
         "properties": {
           "ageBand": {
-            "enum": [
-              "pre-1950",
-              "1950-1979",
-              "1980-1999",
-              "2000-plus"
+            "anyOf": [
+              {
+                "enum": [
+                  "pre-1950",
+                  "1950-1979",
+                  "1980-1999",
+                  "2000-plus"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Ageband",
-            "type": "string"
+            "title": "Ageband"
           },
           "borough": {
-            "enum": [
-              "manhattan",
-              "brooklyn",
-              "queens",
-              "bronx",
-              "staten-island"
+            "anyOf": [
+              {
+                "enum": [
+                  "manhattan",
+                  "brooklyn",
+                  "queens",
+                  "bronx",
+                  "staten-island"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Borough",
-            "type": "string"
+            "title": "Borough"
           },
           "propertyType": {
             "enum": [
@@ -268,6 +544,197 @@
         "title": "PredictionResponseEnvelope",
         "type": "object"
       },
+      "ScenarioPublic": {
+        "additionalProperties": false,
+        "properties": {
+          "citation": {
+            "minLength": 1,
+            "title": "Citation",
+            "type": "string"
+          },
+          "costHigh": {
+            "minimum": 0.0,
+            "title": "Costhigh",
+            "type": "number"
+          },
+          "costLow": {
+            "minimum": 0.0,
+            "title": "Costlow",
+            "type": "number"
+          },
+          "description": {
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "recomputedFine2024": {
+            "minimum": 0.0,
+            "title": "Recomputedfine2024",
+            "type": "number"
+          },
+          "recomputedFine2030": {
+            "minimum": 0.0,
+            "title": "Recomputedfine2030",
+            "type": "number"
+          },
+          "recomputedFineSeries": {
+            "items": {
+              "$ref": "#/components/schemas/FineYear"
+            },
+            "minItems": 1,
+            "title": "Recomputedfineseries",
+            "type": "array"
+          },
+          "reductionPct": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "Reductionpct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "reductionPct",
+          "costLow",
+          "costHigh",
+          "recomputedFineSeries",
+          "recomputedFine2024",
+          "recomputedFine2030",
+          "citation"
+        ],
+        "title": "ScenarioPublic",
+        "type": "object"
+      },
+      "ScenarioSelectEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ScenarioSelectResult"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ScenarioSelectEnvelope",
+        "type": "object"
+      },
+      "ScenarioSelectRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "predictionId": {
+            "minLength": 1,
+            "title": "Predictionid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "predictionId"
+        ],
+        "title": "ScenarioSelectRequest",
+        "type": "object"
+      },
+      "ScenarioSelectResult": {
+        "additionalProperties": false,
+        "properties": {
+          "deduped": {
+            "title": "Deduped",
+            "type": "boolean"
+          },
+          "predictionId": {
+            "title": "Predictionid",
+            "type": "string"
+          },
+          "scenarioId": {
+            "title": "Scenarioid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "predictionId",
+          "scenarioId",
+          "deduped"
+        ],
+        "title": "ScenarioSelectResult",
+        "type": "object"
+      },
+      "ScenariosResponseEnvelope": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioPublic"
+            },
+            "title": "Data",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ScenariosResponseEnvelope",
+        "type": "object"
+      },
+      "SponsorPublic": {
+        "additionalProperties": false,
+        "properties": {
+          "ctaLabel": {
+            "minLength": 1,
+            "title": "Ctalabel",
+            "type": "string"
+          },
+          "ctaUrl": {
+            "minLength": 1,
+            "title": "Ctaurl",
+            "type": "string"
+          },
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "logoUrl": {
+            "minLength": 1,
+            "title": "Logourl",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "logoUrl",
+          "ctaLabel",
+          "ctaUrl"
+        ],
+        "title": "SponsorPublic",
+        "type": "object"
+      },
+      "SponsorResponseEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SponsorPublic"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SponsorResponseEnvelope",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -316,6 +783,90 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/address/lookup": {
+      "get": {
+        "operationId": "lookup_api_address_lookup_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "address",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Address"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressLookupResponseEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup"
+      }
+    },
+    "/api/leads": {
+      "post": {
+        "operationId": "create_api_leads_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeadInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create"
+      }
+    },
     "/api/predictions": {
       "post": {
         "operationId": "create_api_predictions_post",
@@ -352,6 +903,358 @@
           }
         },
         "summary": "Create"
+      }
+    },
+    "/api/predictions/{prediction_id}/pdf": {
+      "get": {
+        "operationId": "get_api_predictions__prediction_id__pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Email",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "multifamily-housing",
+                "office",
+                "hotel",
+                "retail",
+                "hospital",
+                "mixed-use"
+              ],
+              "title": "Propertytype",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "borough",
+            "required": true,
+            "schema": {
+              "enum": [
+                "manhattan",
+                "brooklyn",
+                "queens",
+                "bronx",
+                "staten-island"
+              ],
+              "title": "Borough",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grossFloorAreaSqft",
+            "required": true,
+            "schema": {
+              "maximum": 5000000,
+              "minimum": 500,
+              "title": "Grossfloorareasqft",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "yearBuilt",
+            "required": true,
+            "schema": {
+              "maximum": 2026,
+              "minimum": 1800,
+              "title": "Yearbuilt",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "numberOfBuildings",
+            "required": true,
+            "schema": {
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Numberofbuildings",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get"
+      }
+    },
+    "/api/predictions/{prediction_id}/scenarios": {
+      "get": {
+        "operationId": "list_api_predictions__prediction_id__scenarios_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "multifamily-housing",
+                "office",
+                "hotel",
+                "retail",
+                "hospital",
+                "mixed-use"
+              ],
+              "title": "Propertytype",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "predictedEui",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0.0,
+              "title": "Predictedeui",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grossFloorAreaSqft",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0.0,
+              "title": "Grossfloorareasqft",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenariosResponseEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List"
+      }
+    },
+    "/api/scenarios/{scenario_id}/select": {
+      "post": {
+        "operationId": "select_api_scenarios__scenario_id__select_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Scenario Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioSelectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioSelectEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select"
+      }
+    },
+    "/api/sponsor": {
+      "get": {
+        "operationId": "get_api_sponsor_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SponsorResponseEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get"
+      }
+    },
+    "/api/sponsor/cta": {
+      "get": {
+        "operationId": "cta_api_sponsor_cta_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scenario_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cta"
+      },
+      "head": {
+        "operationId": "cta_api_sponsor_cta_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scenario_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cta"
       }
     }
   }

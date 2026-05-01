@@ -1,3 +1,13 @@
-"""Package placeholder."""
+"""Lead-capture use-case service."""
 
-__all__: list[str] = []
+from app.services.usecase.lead_capture.service import (
+    LeadCaptureRequest,
+    LeadCaptureResult,
+    LeadCaptureUseCaseService,
+)
+
+__all__ = [
+    "LeadCaptureRequest",
+    "LeadCaptureResult",
+    "LeadCaptureUseCaseService",
+]

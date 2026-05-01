@@ -7,7 +7,7 @@ import { TopBar } from "@/components/shell/top-bar";
 
 const SECTION_TITLES: Record<string, string> = {
   "/": "Portfolio Dashboard",
-  "/forecasting": "NYC Energy Forecast",
+  "/report": "NYC Energy Forecast",
   "/insights": "Energy Insights",
   "/assets": "Building Assets",
   "/reports": "Reports",

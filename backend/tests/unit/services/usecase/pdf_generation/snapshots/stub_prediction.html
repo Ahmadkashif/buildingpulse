@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BuildingPulse Report — pred_sample_01</title>
+<style>
+@page { size: Letter; margin: 0.6in; }
+* { box-sizing: border-box; }
+body {
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  color: #1a1a1a;
+  font-size: 10pt;
+  line-height: 1.4;
+  margin: 0;
+}
+h1, h2, h3 { margin: 0 0 6pt 0; font-weight: 600; }
+h1 { font-size: 18pt; }
+h2 { font-size: 13pt; border-bottom: 1pt solid #d0d0d0; padding-bottom: 3pt; margin-top: 14pt; }
+h3 { font-size: 11pt; }
+.sponsor-strip {
+  background: #0f3a5f;
+  color: #ffffff;
+  padding: 6pt 10pt;
+  font-size: 9pt;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.header { padding: 10pt 0 6pt 0; }
+.header .meta { color: #555; font-size: 9pt; }
+.kpis { display: table; width: 100%; border-spacing: 6pt 0; margin: 8pt 0; }
+.kpi {
+  display: table-cell;
+  width: 33.33%;
+  border: 1pt solid #d0d0d0;
+  border-radius: 6pt;
+  padding: 8pt 10pt;
+  vertical-align: top;
+}
+.kpi .label { font-size: 9pt; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi .value { font-size: 16pt; font-weight: 700; margin-top: 4pt; }
+.kpi .caption { font-size: 9pt; color: #555; margin-top: 4pt; }
+.kpi--at-risk .value { color: #b32f2f; }
+.kpi--compliant .value { color: #1e6f3a; }
+table.data { width: 100%; border-collapse: collapse; margin-top: 4pt; }
+table.data th, table.data td {
+  border: 1pt solid #d0d0d0;
+  padding: 4pt 6pt;
+  text-align: left;
+  font-size: 9.5pt;
+}
+table.data th { background: #f3f3f3; font-weight: 600; }
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.fine-row--at-risk td.num { color: #b32f2f; font-weight: 600; }
+.profile { width: 100%; border-collapse: collapse; }
+.profile td {
+  padding: 4pt 6pt;
+  border-bottom: 1pt solid #ececec;
+  font-size: 9.5pt;
+}
+.profile td.label { color: #555; width: 40%; }
+.peer-row--you td { background: #fff3cd; font-weight: 600; }
+.footer {
+  margin-top: 14pt;
+  font-size: 8.5pt;
+  color: #777;
+  border-top: 1pt solid #d0d0d0;
+  padding-top: 6pt;
+}
+</style>
+</head>
+<body>
+  <div class="sponsor-strip">
+    Brought to you by your BuildingPulse partner
+  </div>
+
+  <div class="header">
+    <h1>Site EUI Prediction · Multifamily Housing</h1>
+    <div class="meta">Report ID: pred_sample_01 · Generated 2026-04-16T14:30:00-04:00</div>
+    <p>Predicted Site Energy Use Intensity, peer cohort ranking, and LL97
+    compliance outlook for this NYC building.</p>
+  </div>
+
+  <h2>Headline Metrics</h2>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Predicted Site EUI</div>
+        <div class="value">87.3 kBtu/sf</div>
+        <div class="caption">Interval: 65.2 - 109.4 kBtu/sf</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Peer Percentile</div>
+        <div class="value">68th</div>
+        <div class="caption">Higher = uses more energy than peers</div>
+      </div>
+      <div class="kpi kpi--at-risk">
+        <div class="label">LL97 Status</div>
+        <div class="value">At Risk</div>
+        <div class="caption">Projected fine: $12,400/yr by 2030</div>
+      </div>
+    </div>
+
+  <h2>Peer Cohort Comparison</h2>
+  <p>Your building vs. 1,420 similar buildings - Pre-1950 Multifamily Housing buildings in Brooklyn.</p>
+  <table class="data">
+    <thead>
+      <tr><th>Bucket</th><th>Site EUI</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>p25</td><td class="num">58.0 kBtu/sf</td></tr>
+      <tr><td>Cohort Median</td><td class="num">74.1 kBtu/sf</td></tr>
+      <tr class="peer-row--you"><td>Your Building</td><td class="num">87.3 kBtu/sf</td></tr>
+      <tr><td>p75</td><td class="num">94.5 kBtu/sf</td></tr>
+    </tbody>
+  </table>
+
+  <h2>LL97 Fine Outlook</h2>
+  <p>Projected annual fines by year. Cap 2024-2029: 6.8 kBtu/sf / Cap 2030-2034: 4.5 kBtu/sf.</p>
+  <table class="data">
+    <thead>
+      <tr><th>Year</th><th>Projected Annual Fine</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2026</td><td class="num">$0</td></tr>
+      <tr><td>2027</td><td class="num">$0</td></tr>
+      <tr><td>2028</td><td class="num">$0</td></tr>
+      <tr><td>2029</td><td class="num">$0</td></tr>
+      <tr class="fine-row--at-risk"><td>2030</td><td class="num">$12,400</td></tr>
+      <tr class="fine-row--at-risk"><td>2031</td><td class="num">$12,400</td></tr>
+      <tr class="fine-row--at-risk"><td>2032</td><td class="num">$12,400</td></tr>
+      <tr class="fine-row--at-risk"><td>2033</td><td class="num">$12,400</td></tr>
+      <tr class="fine-row--at-risk"><td>2034</td><td class="num">$12,400</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Building Profile</h2>
+  <table class="profile">
+    <tbody>
+      <tr><td class="label">Property Type</td><td>Multifamily Housing</td></tr>
+      <tr><td class="label">Borough</td><td>Brooklyn</td></tr>
+      <tr><td class="label">Gross Floor Area</td><td>45,000 sqft</td></tr>
+      <tr><td class="label">Year Built</td><td>1925</td></tr>
+      <tr><td class="label">Buildings on Lot</td><td>1</td></tr>
+      <tr><td class="label">Model Version</td><td>baseline-lr-v1</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    BuildingPulse · Predicted Site EUI is a model estimate. Use as a directional
+    indicator, not a substitute for an audit.
+  </div>
+</body>
+</html>

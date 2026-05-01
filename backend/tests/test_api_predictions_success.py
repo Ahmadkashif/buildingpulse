@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+import pytest
 from app.schemas import PredictionResponse
 from fastapi.testclient import TestClient
 
@@ -94,33 +95,70 @@ class TestGeneratedAt:
         assert first != second
 
 
-class TestStubFieldsPassThrough:
-    """Phase 1 invariant: prediction/peer/ll97 blocks equal the stub verbatim.
+class TestLL97BlockShape:
+    """`ll97` is now produced by the real domain calculator (Phase 6).
 
-    Phase 4 will replace `prediction`; Phase 5 replaces `peer`; Phase 6 replaces
-    `ll97`. These tests must be updated — not deleted — when each phase lands.
+    The block carries the period caps, the projected fines for each
+    period, the ``atRisk`` verdict, and the per-year ``fineSeries`` from
+    the current calendar year through 2034 inclusive.
     """
 
-    def test_prediction_block_equals_stub(
+    def test_ll97_block_carries_required_keys(
         self, client: TestClient, valid_request_body: dict[str, Any]
     ) -> None:
-        from app.fixtures.stub_prediction import STUB  # type: ignore[attr-defined]
-
         response = client.post("/api/predictions", json=valid_request_body)
-        assert response.json()["data"]["prediction"] == STUB["prediction"]
+        ll97 = response.json()["data"]["ll97"]
+        assert set(ll97.keys()) == {
+            "capKbtuPerSqft2024To2029",
+            "capKbtuPerSqft2030To2034",
+            "projectedAnnualFineUsd2024",
+            "projectedAnnualFineUsd2030",
+            "atRisk",
+            "fineSeries",
+        }
+        assert isinstance(ll97["atRisk"], bool)
 
-    def test_peer_block_equals_stub(
+
+class TestRealPrediction:
+    """`prediction` is now produced by the real model + ArtifactRegistry."""
+
+    def test_prediction_varies_with_sqft(
         self, client: TestClient, valid_request_body: dict[str, Any]
     ) -> None:
-        from app.fixtures.stub_prediction import STUB  # type: ignore[attr-defined]
+        small = client.post(
+            "/api/predictions", json={**valid_request_body, "grossFloorAreaSqft": 20000}
+        ).json()["data"]["prediction"]["siteEuiKbtuPerSqft"]
+        large = client.post(
+            "/api/predictions", json={**valid_request_body, "grossFloorAreaSqft": 40000}
+        ).json()["data"]["prediction"]["siteEuiKbtuPerSqft"]
+        assert small != large
 
-        response = client.post("/api/predictions", json=valid_request_body)
-        assert response.json()["data"]["peer"] == STUB["peer"]
-
-    def test_ll97_block_equals_stub(
+    def test_model_version_matches_metrics_json(
         self, client: TestClient, valid_request_body: dict[str, Any]
     ) -> None:
-        from app.fixtures.stub_prediction import STUB  # type: ignore[attr-defined]
+        import json
+        from pathlib import Path
 
+        metrics = json.loads(
+            (Path(__file__).resolve().parents[1] / "artifacts" / "metrics.json").read_text()
+        )
         response = client.post("/api/predictions", json=valid_request_body)
-        assert response.json()["data"]["ll97"] == STUB["ll97"]
+        assert response.json()["data"]["prediction"]["modelVersion"] == metrics["modelVersion"]
+
+    def test_interval_is_pred_plus_minus_one_point_five_rmse(
+        self, client: TestClient, valid_request_body: dict[str, Any]
+    ) -> None:
+        import json
+        from pathlib import Path
+
+        metrics = json.loads(
+            (Path(__file__).resolve().parents[1] / "artifacts" / "metrics.json").read_text()
+        )
+        rmse = float(metrics["rmse"])
+
+        block = client.post("/api/predictions", json=valid_request_body).json()["data"][
+            "prediction"
+        ]
+        value = float(block["siteEuiKbtuPerSqft"])
+        assert block["intervalLow"] == pytest.approx(value - 1.5 * rmse)
+        assert block["intervalHigh"] == pytest.approx(value + 1.5 * rmse)

@@ -24,7 +24,7 @@ import logging
 import os
 import sys
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextvars import ContextVar
 from typing import Any
 
@@ -44,12 +44,163 @@ from opentelemetry.sdk.trace.export import (
 )
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.config import AppConfig, load_app_config
+from app.integrations.email_dispatcher import EmailDispatcher
+from app.integrations.webhook_dispatcher import WebhookDispatcher
+from app.repos.artifact_registry import ArtifactRegistry
+from app.repos.audit_repo import AuditRepo
+from app.repos.connection import connect
+from app.repos.lead_repo import LeadRepo
+from app.repos.ll84_index_registry import Ll84IndexRegistry
+from app.repos.peer_cohorts_registry import PeerCohortsRegistry
+from app.services.resource.address.service import AddressResourceService
+from app.services.resource.audit.service import AuditService
+from app.services.resource.lead.service import LeadResourceService
+from app.services.resource.notification.service import NotificationResourceService
+from app.services.resource.prediction.service import PredictionResourceService
+from app.services.resource.scenario.service import ScenarioResourceService
+from app.services.resource.sponsor.service import SponsorResourceService
+from app.services.usecase.lead_capture.service import LeadCaptureUseCaseService
+from app.services.usecase.pdf_generation.service import (
+    PdfGenerationUseCaseService,
+    render_pdf_with_weasyprint,
+)
+
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
+
+DEFAULT_ARTIFACTS_DIR = "./artifacts"
+ARTIFACTS_DIR_ENV = "ARTIFACTS_DIR"
+ADDRESS_LOOKUP_FLAG_ENV = "ADDRESS_LOOKUP_ENABLED"
 
 _request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 _telemetry_configured = False
 _logging_configured = False
+_artifact_registry: ArtifactRegistry | None = None
+_peer_cohorts_registry: PeerCohortsRegistry | None = None
+_ll84_index_registry: Ll84IndexRegistry | None = None
+_app_config: AppConfig | None = None
+
+
+def address_lookup_enabled() -> bool:
+    """Return whether the address-lookup endpoint is enabled.
+
+    Reads the ``ADDRESS_LOOKUP_ENABLED`` env var on every call so tests
+    can flip the flag inside a single FastAPI lifespan. Default is off.
+    """
+    raw = os.environ.get(ADDRESS_LOOKUP_FLAG_ENV, "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def init_app_config() -> AppConfig:
+    """Build the process-wide :class:`AppConfig`. Idempotent within a process.
+
+    Called from the FastAPI lifespan hook so missing or invalid env vars
+    fail at startup, not on the first request that touches them.
+    """
+    global _app_config
+    if _app_config is None:
+        _app_config = load_app_config()
+    return _app_config
+
+
+def get_app_config() -> AppConfig:
+    """FastAPI dependency: yields the process-wide AppConfig."""
+    if _app_config is None:
+        raise RuntimeError("AppConfig not initialized; lifespan startup did not run")
+    return _app_config
+
+
+def _reset_app_config() -> None:
+    """Test-only hook: clear the cached config so a new one can be built."""
+    global _app_config
+    _app_config = None
+
+
+def get_sponsor_service() -> SponsorResourceService:
+    """FastAPI dependency: yields the SponsorResourceService."""
+    return SponsorResourceService(get_app_config().sponsor)
+
+
+def _resolve_artifacts_dir() -> str:
+    return os.environ.get(ARTIFACTS_DIR_ENV, DEFAULT_ARTIFACTS_DIR)
+
+
+def init_artifact_registry(artifacts_dir: str | None = None) -> ArtifactRegistry:
+    """Build the process-wide ArtifactRegistry. Idempotent within a process.
+
+    Called from the FastAPI lifespan hook. Re-running with the registry
+    already loaded is a no-op so the artifacts file system is read exactly
+    once per process.
+    """
+    global _artifact_registry
+    if _artifact_registry is None:
+        _artifact_registry = ArtifactRegistry(artifacts_dir or _resolve_artifacts_dir())
+    return _artifact_registry
+
+
+def get_artifact_registry() -> ArtifactRegistry:
+    """FastAPI dependency: yields the process-wide ArtifactRegistry."""
+    if _artifact_registry is None:
+        raise RuntimeError("ArtifactRegistry not initialized; lifespan startup did not run")
+    return _artifact_registry
+
+
+def _reset_artifact_registry() -> None:
+    """Test-only hook: clear the cached registry so a new one can be built."""
+    global _artifact_registry
+    _artifact_registry = None
+
+
+def init_peer_cohorts_registry(
+    artifacts_dir: str | None = None,
+) -> PeerCohortsRegistry:
+    """Build the process-wide PeerCohortsRegistry. Idempotent within a process."""
+    global _peer_cohorts_registry
+    if _peer_cohorts_registry is None:
+        _peer_cohorts_registry = PeerCohortsRegistry(artifacts_dir or _resolve_artifacts_dir())
+    return _peer_cohorts_registry
+
+
+def get_peer_cohorts_registry() -> PeerCohortsRegistry:
+    """FastAPI dependency: yields the process-wide PeerCohortsRegistry."""
+    if _peer_cohorts_registry is None:
+        raise RuntimeError("PeerCohortsRegistry not initialized; lifespan startup did not run")
+    return _peer_cohorts_registry
+
+
+def _reset_peer_cohorts_registry() -> None:
+    """Test-only hook: clear the cached peer cohorts registry."""
+    global _peer_cohorts_registry
+    _peer_cohorts_registry = None
+
+
+def init_ll84_index_registry(
+    artifacts_dir: str | None = None,
+) -> Ll84IndexRegistry:
+    """Build the process-wide Ll84IndexRegistry. Idempotent within a process."""
+    global _ll84_index_registry
+    if _ll84_index_registry is None:
+        _ll84_index_registry = Ll84IndexRegistry(artifacts_dir or _resolve_artifacts_dir())
+    return _ll84_index_registry
+
+
+def get_ll84_index_registry() -> Ll84IndexRegistry:
+    """FastAPI dependency: yields the process-wide Ll84IndexRegistry."""
+    if _ll84_index_registry is None:
+        raise RuntimeError("Ll84IndexRegistry not initialized; lifespan startup did not run")
+    return _ll84_index_registry
+
+
+def _reset_ll84_index_registry() -> None:
+    """Test-only hook: clear the cached LL84 index registry."""
+    global _ll84_index_registry
+    _ll84_index_registry = None
+
+
+def get_address_service() -> AddressResourceService:
+    """FastAPI dependency: yields the AddressResourceService."""
+    return AddressResourceService(get_ll84_index_registry().index)
 
 
 def _add_request_id(_logger: Any, _name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
@@ -159,11 +310,115 @@ def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
     return structlog.get_logger(name) if name else structlog.get_logger()  # type: ignore[no-any-return]
 
 
+def get_request_id() -> str:
+    """Return the current request_id bound by RequestIdMiddleware, or ''."""
+    rid = _request_id_var.get()
+    return rid if rid is not None else ""
+
+
+def get_trace_id() -> str:
+    """Return the active OpenTelemetry trace_id as a 32-char hex string, or ''."""
+    span = trace.get_current_span()
+    ctx = span.get_span_context() if span is not None else None
+    if ctx is not None and ctx.is_valid:
+        return format(ctx.trace_id, "032x")
+    return ""
+
+
+def get_prediction_service() -> PredictionResourceService:
+    """FastAPI dependency: yields the prediction service backed by the registry."""
+    return PredictionResourceService(get_artifact_registry(), get_peer_cohorts_registry())
+
+
+def get_scenario_service() -> ScenarioResourceService:
+    """FastAPI dependency: yields the ScenarioResourceService."""
+    return ScenarioResourceService()
+
+
+async def get_audit_service() -> AsyncIterator[AuditService]:
+    """FastAPI dependency: yields an AuditService backed by a per-request connection."""
+    conn = connect()
+    try:
+        yield AuditService(AuditRepo(conn))
+    finally:
+        conn.close()
+
+
+def _utc_now() -> Any:
+    from datetime import UTC, datetime
+
+    return datetime.now(UTC)
+
+
+async def get_pdf_generation_use_case() -> AsyncIterator[PdfGenerationUseCaseService]:
+    """FastAPI dependency: yields a fully wired PdfGenerationUseCaseService."""
+    conn = connect()
+    try:
+        lead_service = LeadResourceService(LeadRepo(conn), now=_utc_now)
+        prediction_service = PredictionResourceService(
+            get_artifact_registry(), get_peer_cohorts_registry()
+        )
+        yield PdfGenerationUseCaseService(
+            lead_service=lead_service,
+            prediction_service=prediction_service,
+            html_to_pdf=render_pdf_with_weasyprint,
+        )
+    finally:
+        conn.close()
+
+
+async def get_lead_capture_use_case() -> AsyncIterator[LeadCaptureUseCaseService]:
+    """FastAPI dependency: yields a fully wired LeadCaptureUseCaseService."""
+    config = get_app_config()
+    conn = connect()
+    try:
+        lead_service = LeadResourceService(LeadRepo(conn), now=_utc_now)
+        email_dispatcher = EmailDispatcher(config.sponsor.lead_email)
+        webhook_dispatcher: WebhookDispatcher | None = (
+            WebhookDispatcher(config.sponsor.lead_webhook_url)
+            if config.sponsor.lead_webhook_url is not None
+            else None
+        )
+        notification_service = NotificationResourceService(
+            config.sponsor, email_dispatcher, webhook_dispatcher
+        )
+        audit_service = AuditService(AuditRepo(conn))
+        yield LeadCaptureUseCaseService(
+            lead_service=lead_service,
+            notification_service=notification_service,
+            audit_service=audit_service,
+            now=_utc_now,
+        )
+    finally:
+        conn.close()
+
+
 __all__ = [
+    "ADDRESS_LOOKUP_FLAG_ENV",
+    "ARTIFACTS_DIR_ENV",
+    "DEFAULT_ARTIFACTS_DIR",
     "REQUEST_ID_HEADER",
     "RequestIdMiddleware",
+    "address_lookup_enabled",
     "configure_logging",
     "configure_telemetry",
+    "get_address_service",
+    "get_app_config",
+    "get_artifact_registry",
+    "get_audit_service",
+    "get_lead_capture_use_case",
+    "get_ll84_index_registry",
     "get_logger",
+    "get_pdf_generation_use_case",
+    "get_peer_cohorts_registry",
+    "get_prediction_service",
+    "get_request_id",
+    "get_scenario_service",
+    "get_sponsor_service",
+    "get_trace_id",
+    "init_app_config",
+    "init_artifact_registry",
+    "init_ll84_index_registry",
+    "init_peer_cohorts_registry",
     "instrument_app",
 ]

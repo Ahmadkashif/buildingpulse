@@ -1,3 +1,5 @@
-"""Package placeholder."""
+"""PDF controller package."""
 
-__all__: list[str] = []
+from app.api.v1.pdf.controller import router
+
+__all__ = ["router"]

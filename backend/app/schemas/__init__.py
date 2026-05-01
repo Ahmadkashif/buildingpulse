@@ -56,8 +56,8 @@ class Prediction(ApiModel):
 
 class PeerCohort(ApiModel):
     property_type: PropertyType
-    borough: Borough
-    age_band: AgeBand
+    borough: Borough | None
+    age_band: AgeBand | None
 
 
 class Peer(ApiModel):
@@ -69,12 +69,44 @@ class Peer(ApiModel):
     percentile: int = Field(ge=0, le=100)
 
 
+class FineYear(ApiModel):
+    year: int = Field(ge=2024, le=2034, strict=True)
+    projected_annual_fine_usd: float
+
+
 class LL97(ApiModel):
     cap_kbtu_per_sqft_2024_to_2029: float
     cap_kbtu_per_sqft_2030_to_2034: float
     projected_annual_fine_usd_2024: float
     projected_annual_fine_usd_2030: float
     at_risk: bool = Field(strict=True)
+    fine_series: list[FineYear] = Field(min_length=1)
+
+
+_EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+_PHONE_PATTERN = r"^\+?[0-9][0-9 \-().]{6,}$"
+
+
+class CreateLeadInput(ApiModel):
+    prediction_id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    email: str = Field(min_length=1, pattern=_EMAIL_PATTERN)
+    phone: str = Field(min_length=1, pattern=_PHONE_PATTERN)
+    role: str = Field(min_length=1)
+    consent_given: Literal[True]
+    scenario_id: str | None = None
+    property_type: PropertyType
+    borough: Borough
+    gross_floor_area_sqft: float = Field(ge=0)
+    year_built: int = Field(ge=1800, le=2026, strict=True)
+    predicted_eui: float = Field(ge=0)
+    projected_fine_usd: float = Field(ge=0)
+    at_risk: bool = Field(strict=True)
+    report_url: str = Field(min_length=1)
+
+
+class LeadCreated(ApiModel):
+    id: str = Field(min_length=1)
 
 
 class PredictionResponse(ApiModel):
@@ -92,6 +124,9 @@ __all__ = [
     "ApiModel",
     "Borough",
     "CreateBuildingInput",
+    "CreateLeadInput",
+    "FineYear",
+    "LeadCreated",
     "Peer",
     "PeerCohort",
     "Prediction",

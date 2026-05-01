@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/address/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lookup */
+        get: operations["lookup_api_address_lookup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create */
+        post: operations["create_api_leads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/predictions": {
         parameters: {
             query?: never;
@@ -21,10 +55,123 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/predictions/{prediction_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_api_predictions__prediction_id__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/predictions/{prediction_id}/scenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List */
+        get: operations["list_api_predictions__prediction_id__scenarios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scenarios/{scenario_id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select */
+        post: operations["select_api_scenarios__scenario_id__select_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sponsor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_api_sponsor_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sponsor/cta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cta */
+        get: operations["cta_api_sponsor_cta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /** Cta */
+        head: operations["cta_api_sponsor_cta_get"];
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AddressLookupResponseEnvelope */
+        AddressLookupResponseEnvelope: {
+            data: components["schemas"]["AddressMatchPublic"];
+        };
+        /** AddressMatchPublic */
+        AddressMatchPublic: {
+            /** Addressnormalized */
+            addressNormalized: string;
+            /** Addressraw */
+            addressRaw: string;
+            /** Bbl */
+            bbl: string;
+            /** Borough */
+            borough: string;
+            /** Confidence */
+            confidence: string;
+            /** Grossfloorareasqft */
+            grossFloorAreaSqft: number;
+            /** Numberofbuildings */
+            numberOfBuildings: number;
+            /** Propertytype */
+            propertyType: string;
+            /** Siteeui */
+            siteEui?: number | null;
+            /** Yearbuilt */
+            yearBuilt: number;
+        };
         /** CreateBuildingInput */
         CreateBuildingInput: {
             /**
@@ -44,6 +191,55 @@ export interface components {
             /** Yearbuilt */
             yearBuilt: number;
         };
+        /** CreateLeadInput */
+        CreateLeadInput: {
+            /** Atrisk */
+            atRisk: boolean;
+            /**
+             * Borough
+             * @enum {string}
+             */
+            borough: "manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island";
+            /**
+             * Consentgiven
+             * @constant
+             */
+            consentGiven: true;
+            /** Email */
+            email: string;
+            /** Grossfloorareasqft */
+            grossFloorAreaSqft: number;
+            /** Name */
+            name: string;
+            /** Phone */
+            phone: string;
+            /** Predictedeui */
+            predictedEui: number;
+            /** Predictionid */
+            predictionId: string;
+            /** Projectedfineusd */
+            projectedFineUsd: number;
+            /**
+             * Propertytype
+             * @enum {string}
+             */
+            propertyType: "multifamily-housing" | "office" | "hotel" | "retail" | "hospital" | "mixed-use";
+            /** Reporturl */
+            reportUrl: string;
+            /** Role */
+            role: string;
+            /** Scenarioid */
+            scenarioId?: string | null;
+            /** Yearbuilt */
+            yearBuilt: number;
+        };
+        /** FineYear */
+        FineYear: {
+            /** Projectedannualfineusd */
+            projectedAnnualFineUsd: number;
+            /** Year */
+            year: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -57,10 +253,21 @@ export interface components {
             capKbtuPerSqft2024To2029: number;
             /** Capkbtupersqft2030To2034 */
             capKbtuPerSqft2030To2034: number;
+            /** Fineseries */
+            fineSeries: components["schemas"]["FineYear"][];
             /** Projectedannualfineusd2024 */
             projectedAnnualFineUsd2024: number;
             /** Projectedannualfineusd2030 */
             projectedAnnualFineUsd2030: number;
+        };
+        /** LeadCreated */
+        LeadCreated: {
+            /** Id */
+            id: string;
+        };
+        /** LeadResponseEnvelope */
+        LeadResponseEnvelope: {
+            data: components["schemas"]["LeadCreated"];
         };
         /** Peer */
         Peer: {
@@ -78,16 +285,10 @@ export interface components {
         };
         /** PeerCohort */
         PeerCohort: {
-            /**
-             * Ageband
-             * @enum {string}
-             */
-            ageBand: "pre-1950" | "1950-1979" | "1980-1999" | "2000-plus";
-            /**
-             * Borough
-             * @enum {string}
-             */
-            borough: "manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island";
+            /** Ageband */
+            ageBand: ("pre-1950" | "1950-1979" | "1980-1999" | "2000-plus") | null;
+            /** Borough */
+            borough: ("manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island") | null;
             /**
              * Propertytype
              * @enum {string}
@@ -123,6 +324,69 @@ export interface components {
         PredictionResponseEnvelope: {
             data: components["schemas"]["PredictionResponse"];
         };
+        /** ScenarioPublic */
+        ScenarioPublic: {
+            /** Citation */
+            citation: string;
+            /** Costhigh */
+            costHigh: number;
+            /** Costlow */
+            costLow: number;
+            /** Description */
+            description: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Recomputedfine2024 */
+            recomputedFine2024: number;
+            /** Recomputedfine2030 */
+            recomputedFine2030: number;
+            /** Recomputedfineseries */
+            recomputedFineSeries: components["schemas"]["FineYear"][];
+            /** Reductionpct */
+            reductionPct: number;
+        };
+        /** ScenarioSelectEnvelope */
+        ScenarioSelectEnvelope: {
+            data: components["schemas"]["ScenarioSelectResult"];
+        };
+        /** ScenarioSelectRequest */
+        ScenarioSelectRequest: {
+            /** Predictionid */
+            predictionId: string;
+        };
+        /** ScenarioSelectResult */
+        ScenarioSelectResult: {
+            /** Deduped */
+            deduped: boolean;
+            /** Predictionid */
+            predictionId: string;
+            /** Scenarioid */
+            scenarioId: string;
+        };
+        /** ScenariosResponseEnvelope */
+        ScenariosResponseEnvelope: {
+            /** Data */
+            data: components["schemas"]["ScenarioPublic"][];
+        };
+        /** SponsorPublic */
+        SponsorPublic: {
+            /** Ctalabel */
+            ctaLabel: string;
+            /** Ctaurl */
+            ctaUrl: string;
+            /** Id */
+            id: string;
+            /** Logourl */
+            logoUrl: string;
+            /** Name */
+            name: string;
+        };
+        /** SponsorResponseEnvelope */
+        SponsorResponseEnvelope: {
+            data: components["schemas"]["SponsorPublic"];
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -145,6 +409,70 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    lookup_api_address_lookup_get: {
+        parameters: {
+            query?: {
+                address?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressLookupResponseEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_leads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLeadInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadResponseEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_api_predictions_post: {
         parameters: {
             query?: never;
@@ -166,6 +494,192 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PredictionResponseEnvelope"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_api_predictions__prediction_id__pdf_get: {
+        parameters: {
+            query: {
+                email: string;
+                propertyType: "multifamily-housing" | "office" | "hotel" | "retail" | "hospital" | "mixed-use";
+                borough: "manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island";
+                grossFloorAreaSqft: number;
+                yearBuilt: number;
+                numberOfBuildings: number;
+            };
+            header?: never;
+            path: {
+                prediction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_api_predictions__prediction_id__scenarios_get: {
+        parameters: {
+            query: {
+                propertyType: "multifamily-housing" | "office" | "hotel" | "retail" | "hospital" | "mixed-use";
+                predictedEui: number;
+                grossFloorAreaSqft: number;
+            };
+            header?: never;
+            path: {
+                prediction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenariosResponseEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_api_scenarios__scenario_id__select_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scenario_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioSelectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioSelectEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_api_sponsor_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SponsorResponseEnvelope"];
+                };
+            };
+        };
+    };
+    cta_api_sponsor_cta_get: {
+        parameters: {
+            query: {
+                prediction_id: string;
+                scenario_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cta_api_sponsor_cta_get: {
+        parameters: {
+            query: {
+                prediction_id: string;
+                scenario_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

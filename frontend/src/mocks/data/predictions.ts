@@ -35,6 +35,17 @@ export const PREDICTION_FIXTURES: PredictionResponse[] = [
       projectedAnnualFineUsd2024: 0,
       projectedAnnualFineUsd2030: 12400,
       atRisk: true,
+      fineSeries: [
+        { year: 2026, projectedAnnualFineUsd: 0 },
+        { year: 2027, projectedAnnualFineUsd: 0 },
+        { year: 2028, projectedAnnualFineUsd: 0 },
+        { year: 2029, projectedAnnualFineUsd: 0 },
+        { year: 2030, projectedAnnualFineUsd: 12400 },
+        { year: 2031, projectedAnnualFineUsd: 12400 },
+        { year: 2032, projectedAnnualFineUsd: 12400 },
+        { year: 2033, projectedAnnualFineUsd: 12400 },
+        { year: 2034, projectedAnnualFineUsd: 12400 },
+      ],
     },
   },
 ];
