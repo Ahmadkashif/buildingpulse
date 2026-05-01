@@ -239,22 +239,19 @@ def build_ll84_index(df: pd.DataFrame) -> pd.DataFrame:
     work["gross_floor_area_sqft"] = pd.to_numeric(df[_GFA_COL], errors="coerce")
     work["year_built"] = pd.to_numeric(df[_YEAR_BUILT_COL], errors="coerce")
     work["number_of_buildings"] = pd.to_numeric(df[_NUM_BUILDINGS_COL], errors="coerce")
-    work["site_eui"] = (
-        pd.to_numeric(df[_SITE_EUI_COL], errors="coerce") if has_eui else np.nan
-    )
+    work["site_eui"] = pd.to_numeric(df[_SITE_EUI_COL], errors="coerce") if has_eui else np.nan
 
-    work["bbl_raw"] = (
-        df[bbl_col].astype(str).str.strip() if bbl_col else pd.Series([""] * len(df), index=df.index)
-    )
+    if bbl_col:
+        work["bbl_raw"] = df[bbl_col].astype(str).str.strip()
+    else:
+        work["bbl_raw"] = pd.Series([""] * len(df), index=df.index)
     work["address_raw"] = (
         df[addr_col].astype(str).str.strip()
         if addr_col
         else pd.Series([""] * len(df), index=df.index)
     )
 
-    work = work.dropna(
-        subset=["gross_floor_area_sqft", "year_built", "number_of_buildings"]
-    )
+    work = work.dropna(subset=["gross_floor_area_sqft", "year_built", "number_of_buildings"])
     work = work.dropna(subset=["property_type"])
     work = work[work["borough"].isin(_BOROUGHS)]
 
