@@ -56,6 +56,55 @@ def test_lead_routing_fields_exposed_only_via_dedicated_properties(
     assert service.lead_webhook_url == "https://hooks.example.com/acme"
 
 
+class TestCtaRedirectUrl:
+    def test_appends_ids_and_utm_params(self, sponsor: SponsorConfig) -> None:
+        url = SponsorResourceService(sponsor).cta_redirect_url(
+            prediction_id="pred_42", scenario_id="heat_pump"
+        )
+        from urllib.parse import parse_qs, urlsplit
+
+        parts = urlsplit(url)
+        assert f"{parts.scheme}://{parts.netloc}{parts.path}" == (
+            "https://acme-energy.example.com/contact"
+        )
+        q = parse_qs(parts.query)
+        assert q["prediction_id"] == ["pred_42"]
+        assert q["scenario_id"] == ["heat_pump"]
+        assert q["utm_source"] == ["buildingpulse"]
+        assert q["utm_campaign"] == ["ll97_report"]
+
+    def test_omits_scenario_id_when_none(self, sponsor: SponsorConfig) -> None:
+        url = SponsorResourceService(sponsor).cta_redirect_url(
+            prediction_id="pred_42", scenario_id=None
+        )
+        from urllib.parse import parse_qs, urlsplit
+
+        q = parse_qs(urlsplit(url).query)
+        assert "scenario_id" not in q
+        assert q["prediction_id"] == ["pred_42"]
+        assert q["utm_source"] == ["buildingpulse"]
+        assert q["utm_campaign"] == ["ll97_report"]
+
+    def test_preserves_existing_query_string_on_cta_url(self) -> None:
+        sponsor = SponsorConfig(
+            id="acme-energy",
+            name="Acme Energy",
+            logo_url="https://cdn.example.com/acme-logo.svg",
+            cta_label="Talk to a contractor",
+            cta_url="https://acme-energy.example.com/contact?ref=bp",
+            lead_email="leads@acme-energy.example.com",
+            lead_webhook_url=None,
+        )
+        url = SponsorResourceService(sponsor).cta_redirect_url(
+            prediction_id="pred_42", scenario_id=None
+        )
+        from urllib.parse import parse_qs, urlsplit
+
+        q = parse_qs(urlsplit(url).query)
+        assert q["ref"] == ["bp"]
+        assert q["prediction_id"] == ["pred_42"]
+
+
 def test_lead_webhook_url_passes_through_none_when_unset() -> None:
     sponsor = SponsorConfig(
         id="acme-energy",

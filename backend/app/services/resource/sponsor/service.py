@@ -8,10 +8,14 @@ per deployment (config is loaded once at startup).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from app.config import SponsorConfig
 
 __all__ = ["SponsorDisplay", "SponsorResourceService"]
+
+_UTM_SOURCE = "buildingpulse"
+_UTM_CAMPAIGN = "ll97_report"
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,6 +45,19 @@ class SponsorResourceService:
             cta_label=s.cta_label,
             cta_url=s.cta_url,
         )
+
+    def cta_redirect_url(
+        self, prediction_id: str, scenario_id: str | None
+    ) -> str:
+        """Build the sponsor CTA URL with prediction/scenario ids and UTM tags appended."""
+        parts = urlsplit(self._sponsor.cta_url)
+        params = parse_qsl(parts.query, keep_blank_values=True)
+        params.append(("prediction_id", prediction_id))
+        if scenario_id is not None:
+            params.append(("scenario_id", scenario_id))
+        params.append(("utm_source", _UTM_SOURCE))
+        params.append(("utm_campaign", _UTM_CAMPAIGN))
+        return urlunsplit(parts._replace(query=urlencode(params)))
 
     @property
     def lead_email(self) -> str:
