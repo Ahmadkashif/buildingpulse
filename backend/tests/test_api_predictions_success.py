@@ -95,21 +95,28 @@ class TestGeneratedAt:
         assert first != second
 
 
-class TestStubFieldsPassThrough:
-    """`ll97` still echoes the stub verbatim; `prediction` and `peer` are now real.
+class TestLL97BlockShape:
+    """`ll97` is now produced by the real domain calculator (Phase 6).
 
-    Phase 6 will replace `ll97`. That test must be updated — not deleted —
-    when the phase lands. The `prediction` block was replaced in Phase 4
-    (issue #57); the `peer` block was replaced in Phase 5 (issue #60).
+    The block carries the period caps, the projected fines for each
+    period, the ``atRisk`` verdict, and the per-year ``fineSeries`` from
+    the current calendar year through 2034 inclusive.
     """
 
-    def test_ll97_block_equals_stub(
+    def test_ll97_block_carries_required_keys(
         self, client: TestClient, valid_request_body: dict[str, Any]
     ) -> None:
-        from app.fixtures.stub_prediction import STUB  # type: ignore[attr-defined]
-
         response = client.post("/api/predictions", json=valid_request_body)
-        assert response.json()["data"]["ll97"] == STUB["ll97"]
+        ll97 = response.json()["data"]["ll97"]
+        assert set(ll97.keys()) == {
+            "capKbtuPerSqft2024To2029",
+            "capKbtuPerSqft2030To2034",
+            "projectedAnnualFineUsd2024",
+            "projectedAnnualFineUsd2030",
+            "atRisk",
+            "fineSeries",
+        }
+        assert isinstance(ll97["atRisk"], bool)
 
 
 class TestRealPrediction:

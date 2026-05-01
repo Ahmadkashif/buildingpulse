@@ -56,6 +56,27 @@
         "title": "CreateBuildingInput",
         "type": "object"
       },
+      "FineYear": {
+        "additionalProperties": false,
+        "properties": {
+          "projectedAnnualFineUsd": {
+            "title": "Projectedannualfineusd",
+            "type": "number"
+          },
+          "year": {
+            "maximum": 2034.0,
+            "minimum": 2024.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "projectedAnnualFineUsd"
+        ],
+        "title": "FineYear",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -84,6 +105,14 @@
             "title": "Capkbtupersqft2030To2034",
             "type": "number"
           },
+          "fineSeries": {
+            "items": {
+              "$ref": "#/components/schemas/FineYear"
+            },
+            "minItems": 1,
+            "title": "Fineseries",
+            "type": "array"
+          },
           "projectedAnnualFineUsd2024": {
             "title": "Projectedannualfineusd2024",
             "type": "number"
@@ -98,7 +127,8 @@
           "capKbtuPerSqft2030To2034",
           "projectedAnnualFineUsd2024",
           "projectedAnnualFineUsd2030",
-          "atRisk"
+          "atRisk",
+          "fineSeries"
         ],
         "title": "LL97",
         "type": "object"

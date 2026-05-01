@@ -69,12 +69,18 @@ class Peer(ApiModel):
     percentile: int = Field(ge=0, le=100)
 
 
+class FineYear(ApiModel):
+    year: int = Field(ge=2024, le=2034, strict=True)
+    projected_annual_fine_usd: float
+
+
 class LL97(ApiModel):
     cap_kbtu_per_sqft_2024_to_2029: float
     cap_kbtu_per_sqft_2030_to_2034: float
     projected_annual_fine_usd_2024: float
     projected_annual_fine_usd_2030: float
     at_risk: bool = Field(strict=True)
+    fine_series: list[FineYear] = Field(min_length=1)
 
 
 class PredictionResponse(ApiModel):
@@ -92,6 +98,7 @@ __all__ = [
     "ApiModel",
     "Borough",
     "CreateBuildingInput",
+    "FineYear",
     "Peer",
     "PeerCohort",
     "Prediction",

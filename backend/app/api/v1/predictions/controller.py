@@ -1,11 +1,12 @@
 """POST /api/predictions — controller.
 
 Calls the real prediction resource service to produce the `prediction`
-block (point estimate + interval + model version) and the `peer` block
-(percentile, p25/median/p75, cohort echo). `ll97` stays on the canonical
-fixture until its own resource service lands. The controller still
-records a ``PredictionGenerated`` audit event tagged with the same
-`request_id` that appears on the request's structured log line.
+block (point estimate + interval + model version), the `peer` block
+(percentile, p25/median/p75, cohort echo), and the `ll97` block
+(period caps, period fines, year-by-year ``fineSeries``, and ``atRisk``
+verdict). The controller records a ``PredictionGenerated`` audit event
+tagged with the same `request_id` that appears on the request's
+structured log line.
 """
 
 from __future__ import annotations
@@ -24,7 +25,6 @@ from app.deps import (
     get_trace_id,
 )
 from app.domain.audit.types import PredictionGenerated
-from app.fixtures.stub_prediction import STUB
 from app.schemas import CreateBuildingInput, PredictionResponse
 from app.services.resource.audit.service import AuditService
 from app.services.resource.prediction.service import PredictionResourceService
@@ -52,9 +52,7 @@ class PredictionsController:
         self,
         body: CreateBuildingInput,
         audit: Annotated[AuditService, Depends(get_audit_service)],
-        prediction_service: Annotated[
-            PredictionResourceService, Depends(get_prediction_service)
-        ],
+        prediction_service: Annotated[PredictionResourceService, Depends(get_prediction_service)],
     ) -> dict[str, Any]:
         prediction_id = f"pred_{uuid4().hex}"
         generated_at = datetime.now(UTC)
@@ -68,6 +66,7 @@ class PredictionsController:
         )
         eui = result.eui
         peer = result.peer
+        ll97 = result.ll97
 
         payload: dict[str, Any] = {
             "id": prediction_id,
@@ -91,7 +90,20 @@ class PredictionsController:
                 "p75SiteEui": peer.p75,
                 "percentile": peer.percentile,
             },
-            "ll97": STUB["ll97"],
+            "ll97": {
+                "capKbtuPerSqft2024To2029": ll97.cap_current,
+                "capKbtuPerSqft2030To2034": ll97.cap_future,
+                "projectedAnnualFineUsd2024": ll97.fine_current,
+                "projectedAnnualFineUsd2030": ll97.fine_future,
+                "atRisk": ll97.at_risk,
+                "fineSeries": [
+                    {
+                        "year": row.year,
+                        "projectedAnnualFineUsd": row.projected_annual_fine_usd,
+                    }
+                    for row in ll97.fine_series
+                ],
+            },
         }
 
         await audit.record(

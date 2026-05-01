@@ -1,17 +1,21 @@
 """Prediction resource service.
 
-Composes the EUI predictor with the peer-cohort lookup. Pulls the model,
-model version, and RMSE from :class:`~app.repos.artifact_registry.ArtifactRegistry`,
-runs :func:`app.domain.prediction.predictor.predict_eui`, then scores the
-predicted EUI against the cohorts frame held by
+Composes the EUI predictor with the peer-cohort lookup and the LL97 fine
+calculator. Pulls the model, model version, and RMSE from
+:class:`~app.repos.artifact_registry.ArtifactRegistry`, runs
+:func:`app.domain.prediction.predictor.predict_eui`, scores the predicted
+EUI against the cohorts frame held by
 :class:`~app.repos.peer_cohorts_registry.PeerCohortsRegistry` via
-:func:`app.domain.peer.lookup.lookup`.
+:func:`app.domain.peer.lookup.lookup`, and projects LL97 fine exposure
+through :func:`app.domain.ll97.compute`.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.domain.ll97 import Ll97Outlook
+from app.domain.ll97 import compute as compute_ll97
 from app.domain.peer import PeerOutlook, lookup
 from app.domain.prediction import EuiPrediction, predict_eui
 from app.repos.artifact_registry import ArtifactRegistry
@@ -26,6 +30,7 @@ class PredictionResult:
 
     eui: EuiPrediction
     peer: PeerOutlook
+    ll97: Ll97Outlook
 
 
 class PredictionResourceService:
@@ -65,4 +70,9 @@ class PredictionResourceService:
             year_built=year_built,
             predicted_eui=eui.value,
         )
-        return PredictionResult(eui=eui, peer=peer)
+        ll97 = compute_ll97(
+            property_type=property_type,
+            predicted_eui_kbtu_per_sqft=eui.value,
+            gross_floor_area_sqft=float(gross_floor_area_sqft),
+        )
+        return PredictionResult(eui=eui, peer=peer, ll97=ll97)
