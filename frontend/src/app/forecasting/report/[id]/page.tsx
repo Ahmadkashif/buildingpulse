@@ -17,6 +17,7 @@ import { SponsorStrip } from "@/components/report/sponsor-strip";
 import { ScenariosCard } from "@/components/report/scenarios-card";
 import { LeadModal, type LeadModalContext } from "@/components/modal/lead-modal";
 import { usePrediction } from "@/hooks/use-prediction";
+import { useChooseScenario } from "@/hooks/use-choose-scenario";
 import { useUnlock } from "@/providers/unlock-provider";
 import type {
   BuildingBorough,
@@ -59,6 +60,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const unlocked = isUnlocked(id);
 
   const query = usePrediction(id);
+  const onChooseScenario = useChooseScenario(id);
 
   if (query.isLoading) {
     return <ReportSkeleton />;
@@ -127,6 +129,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               grossFloorAreaSqft: prediction.input.grossFloorAreaSqft,
             }}
             onRequestUnlock={() => setLeadOpen(true)}
+            onChooseScenario={onChooseScenario}
           />
 
           <section aria-label="Insights" className="flex flex-col gap-4">
