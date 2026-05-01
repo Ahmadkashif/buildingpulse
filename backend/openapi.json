@@ -1,6 +1,92 @@
 {
   "components": {
     "schemas": {
+      "AddressLookupResponseEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AddressMatchPublic"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "AddressLookupResponseEnvelope",
+        "type": "object"
+      },
+      "AddressMatchPublic": {
+        "additionalProperties": false,
+        "properties": {
+          "addressNormalized": {
+            "minLength": 1,
+            "title": "Addressnormalized",
+            "type": "string"
+          },
+          "addressRaw": {
+            "minLength": 1,
+            "title": "Addressraw",
+            "type": "string"
+          },
+          "bbl": {
+            "minLength": 1,
+            "title": "Bbl",
+            "type": "string"
+          },
+          "borough": {
+            "minLength": 1,
+            "title": "Borough",
+            "type": "string"
+          },
+          "confidence": {
+            "minLength": 1,
+            "title": "Confidence",
+            "type": "string"
+          },
+          "grossFloorAreaSqft": {
+            "minimum": 0.0,
+            "title": "Grossfloorareasqft",
+            "type": "integer"
+          },
+          "numberOfBuildings": {
+            "minimum": 0.0,
+            "title": "Numberofbuildings",
+            "type": "integer"
+          },
+          "propertyType": {
+            "minLength": 1,
+            "title": "Propertytype",
+            "type": "string"
+          },
+          "siteEui": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Siteeui"
+          },
+          "yearBuilt": {
+            "minimum": 0.0,
+            "title": "Yearbuilt",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bbl",
+          "addressRaw",
+          "addressNormalized",
+          "propertyType",
+          "borough",
+          "grossFloorAreaSqft",
+          "yearBuilt",
+          "numberOfBuildings",
+          "confidence"
+        ],
+        "title": "AddressMatchPublic",
+        "type": "object"
+      },
       "CreateBuildingInput": {
         "additionalProperties": false,
         "properties": {
@@ -697,6 +783,52 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/address/lookup": {
+      "get": {
+        "operationId": "lookup_api_address_lookup_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "address",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Address"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressLookupResponseEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup"
+      }
+    },
     "/api/leads": {
       "post": {
         "operationId": "create_api_leads_post",
@@ -771,6 +903,115 @@
           }
         },
         "summary": "Create"
+      }
+    },
+    "/api/predictions/{prediction_id}/pdf": {
+      "get": {
+        "operationId": "get_api_predictions__prediction_id__pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prediction_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Prediction Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Email",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "multifamily-housing",
+                "office",
+                "hotel",
+                "retail",
+                "hospital",
+                "mixed-use"
+              ],
+              "title": "Propertytype",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "borough",
+            "required": true,
+            "schema": {
+              "enum": [
+                "manhattan",
+                "brooklyn",
+                "queens",
+                "bronx",
+                "staten-island"
+              ],
+              "title": "Borough",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grossFloorAreaSqft",
+            "required": true,
+            "schema": {
+              "maximum": 5000000,
+              "minimum": 500,
+              "title": "Grossfloorareasqft",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "yearBuilt",
+            "required": true,
+            "schema": {
+              "maximum": 2026,
+              "minimum": 1800,
+              "title": "Yearbuilt",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "numberOfBuildings",
+            "required": true,
+            "schema": {
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Numberofbuildings",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get"
       }
     },
     "/api/predictions/{prediction_id}/scenarios": {

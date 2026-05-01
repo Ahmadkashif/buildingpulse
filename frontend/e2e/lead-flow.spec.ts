@@ -54,7 +54,7 @@ test("lead capture flow unlocks PDF export and retrofit scenarios", async ({ pag
     });
   });
 
-  await page.goto("/forecasting/report/pred_lead_e2e");
+  await page.goto("/report/pred_lead_e2e");
 
   const exportCta = page.getByTestId("cta-export-pdf");
   const retrofitCta = page.getByTestId("cta-retrofit-scenarios");
@@ -114,7 +114,7 @@ test("scenarios card hides scenarios until lead capture and surfaces all fields"
     });
   });
 
-  await page.goto("/forecasting/report/pred_lead_e2e");
+  await page.goto("/report/pred_lead_e2e");
 
   const seeRetrofitCta = page.getByTestId("cta-see-retrofit-options");
   await expect(seeRetrofitCta).toBeVisible({ timeout: 30_000 });

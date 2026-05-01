@@ -10,15 +10,34 @@ export default defineConfig({
     headless: true,
     baseURL: "http://localhost:3100",
   },
-  webServer: {
-    command: "npm run dev -- --port 3100",
-    url: "http://localhost:3100",
-    env: { NEXT_PUBLIC_API_BASE_URL: "http://localhost:3100" },
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    stdout: "pipe",
-    stderr: "pipe",
-  },
+  webServer: [
+    {
+      command: "npm run dev -- --port 3100",
+      url: "http://localhost:3100",
+      env: {
+        NEXT_PUBLIC_API_BASE_URL: "http://localhost:3100",
+        NEXT_PUBLIC_ADDRESS_LOOKUP_ENABLED: "true",
+      },
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+    {
+      command: "npm run dev -- --port 3101",
+      url: "http://localhost:3101",
+      env: {
+        NEXT_PUBLIC_API_BASE_URL: "http://localhost:3101",
+        // Use a separate dist dir so this dev server doesn't collide with
+        // the flag-on server's `.next/dev` lockfile.
+        NEXT_DIST_DIR: ".next-flag-off",
+      },
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  ],
   projects: [
     {
       name: "chromium",

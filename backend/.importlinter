@@ -31,6 +31,7 @@ modules =
     app.services.resource.scenario
     app.services.resource.notification
     app.services.resource.audit
+    app.services.resource.address
 
 # Contract: usecases-compose-resources-only
 # Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"

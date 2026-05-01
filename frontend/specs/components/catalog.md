@@ -30,7 +30,7 @@ A flat index of the reusable components extracted from the source designs.
 ## Forms
 
 - `FormField` — label + hint wrapper
-- `PredictEuiForm` — full form for the `/forecasting` page
+- `PredictEuiForm` — full form for the `/report` page
 
 ## Loading
 

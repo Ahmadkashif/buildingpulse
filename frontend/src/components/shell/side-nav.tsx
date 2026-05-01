@@ -25,7 +25,7 @@ interface NavItem {
 
 const PRIMARY_NAV: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Forecasting", href: "/forecasting", icon: Activity },
+  { label: "Forecasting", href: "/report", icon: Activity },
   { label: "Energy Insights", href: "/insights", icon: LineChart },
   { label: "Building Assets", href: "/assets", icon: Building2 },
   { label: "Reports", href: "/reports", icon: BarChart3 },
@@ -90,7 +90,7 @@ export function SideNav() {
 
       <div className="flex flex-col gap-2 px-6 py-6">
         <Link
-          href="/forecasting"
+          href="/report"
           className={buttonVariants({ variant: "gradient", width: "full" })}
         >
           Generate Forecast

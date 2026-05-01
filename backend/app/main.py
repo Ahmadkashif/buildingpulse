@@ -17,7 +17,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.address import router as address_router
 from app.api.v1.leads import router as leads_router
+from app.api.v1.pdf import router as pdf_router
 from app.api.v1.predictions import router as predictions_router
 from app.api.v1.scenarios import router as scenarios_router
 from app.api.v1.sponsor import router as sponsor_router
@@ -28,6 +30,7 @@ from app.deps import (
     get_logger,
     init_app_config,
     init_artifact_registry,
+    init_ll84_index_registry,
     init_peer_cohorts_registry,
     instrument_app,
 )
@@ -53,6 +56,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     log.info("startup.artifacts_loaded", model_version=registry.model_version)
     cohorts = init_peer_cohorts_registry()
     log.info("startup.peer_cohorts_loaded", rows=int(cohorts.cohorts.shape[0]))
+    ll84_index = init_ll84_index_registry()
+    log.info("startup.ll84_index_loaded", rows=len(ll84_index.index.records))
     yield
 
 
@@ -74,5 +79,7 @@ app.include_router(predictions_router, prefix="/api")
 app.include_router(scenarios_router, prefix="/api")
 app.include_router(sponsor_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
+app.include_router(pdf_router, prefix="/api")
+app.include_router(address_router, prefix="/api")
 
 __all__ = ["app"]

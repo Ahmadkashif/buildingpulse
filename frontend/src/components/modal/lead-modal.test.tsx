@@ -17,7 +17,7 @@ const CONTEXT: LeadModalContext = {
   predictedEui: 95.4,
   projectedFineUsd: 12345,
   atRisk: true,
-  reportUrl: "http://localhost:3000/forecasting/report/pred_abc123",
+  reportUrl: "http://localhost:3000/report/pred_abc123",
 };
 
 function renderModal(overrides: Partial<React.ComponentProps<typeof LeadModal>> = {}) {

@@ -18,11 +18,3 @@ export const PREDICTION_STAGES: PredictionStage[] = [
   { threshold: 100, headline: "Ready.", status: "Your prediction is ready." },
 ];
 
-/** Milestone copy for the PDF export dialog. */
-export const PDF_EXPORT_STAGES: PredictionStage[] = [
-  { threshold: 0, headline: "Preparing…", status: "Assembling report sections…" },
-  { threshold: 25, headline: "Rendering…", status: "Rendering charts and visualizations…" },
-  { threshold: 50, headline: "Composing…", status: "Composing editorial layout…" },
-  { threshold: 75, headline: "Packaging…", status: "Embedding fonts and finalizing PDF…" },
-  { threshold: 100, headline: "Ready.", status: "Download ready." },
-];

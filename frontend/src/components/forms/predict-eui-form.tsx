@@ -9,8 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { FormField } from "@/components/forms/form-field";
+import { AddressLookupField } from "@/components/forms/address-lookup-field";
 import { usePredict } from "@/hooks/use-prediction";
-import type { BuildingBorough, BuildingPropertyType, CreateBuildingInput } from "@/types";
+import { isAddressLookupEnabled } from "@/lib/address-lookup-flag";
+import type {
+  AddressMatch,
+  BuildingBorough,
+  BuildingPropertyType,
+  CreateBuildingInput,
+} from "@/types";
 
 const PROPERTY_TYPES: Array<{ value: BuildingPropertyType; label: string }> = [
   { value: "multifamily-housing", label: "Multifamily Housing" },
@@ -39,6 +46,16 @@ export function PredictEuiForm() {
   const [yearBuilt, setYearBuilt] = React.useState("");
   const [numberOfBuildings, setNumberOfBuildings] = React.useState(1);
 
+  const addressLookupEnabled = isAddressLookupEnabled();
+
+  const onAddressMatch = (match: AddressMatch) => {
+    setPropertyType(match.propertyType);
+    setBorough(match.borough);
+    setGrossFloorArea(String(match.grossFloorAreaSqft));
+    setYearBuilt(String(match.yearBuilt));
+    setNumberOfBuildings(Math.max(1, match.numberOfBuildings || 1));
+  };
+
   const isValid =
     propertyType !== "" &&
     borough !== "" &&
@@ -60,13 +77,14 @@ export function PredictEuiForm() {
 
     predict.mutate(input, {
       onSuccess: (response) => {
-        router.push(`/forecasting/predicting?predictionId=${response.data.id}`);
+        router.push(`/report/predicting?predictionId=${response.data.id}`);
       },
     });
   };
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-8">
+      {addressLookupEnabled ? <AddressLookupField onMatch={onAddressMatch} /> : null}
       <div className="grid gap-6 md:grid-cols-2">
         <FormField label="Property Type" htmlFor="property-type">
           <Select
