@@ -1,3 +1,4 @@
+import { addressHandlers } from "./handlers/address";
 import { leadHandlers } from "./handlers/lead";
 import { pdfHandlers } from "./handlers/pdf";
 import { predictionHandlers } from "./handlers/prediction";
@@ -10,4 +11,5 @@ export const handlers = [
   ...leadHandlers,
   ...scenarioHandlers,
   ...pdfHandlers,
+  ...addressHandlers,
 ];
