@@ -181,18 +181,14 @@ def init_ll84_index_registry(
     """Build the process-wide Ll84IndexRegistry. Idempotent within a process."""
     global _ll84_index_registry
     if _ll84_index_registry is None:
-        _ll84_index_registry = Ll84IndexRegistry(
-            artifacts_dir or _resolve_artifacts_dir()
-        )
+        _ll84_index_registry = Ll84IndexRegistry(artifacts_dir or _resolve_artifacts_dir())
     return _ll84_index_registry
 
 
 def get_ll84_index_registry() -> Ll84IndexRegistry:
     """FastAPI dependency: yields the process-wide Ll84IndexRegistry."""
     if _ll84_index_registry is None:
-        raise RuntimeError(
-            "Ll84IndexRegistry not initialized; lifespan startup did not run"
-        )
+        raise RuntimeError("Ll84IndexRegistry not initialized; lifespan startup did not run")
     return _ll84_index_registry
 
 

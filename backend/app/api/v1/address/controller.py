@@ -62,9 +62,7 @@ class AddressController:
 
     async def lookup(
         self,
-        address_service: Annotated[
-            AddressResourceService, Depends(get_address_service)
-        ],
+        address_service: Annotated[AddressResourceService, Depends(get_address_service)],
         address: Annotated[str | None, Query()] = None,
     ) -> dict[str, AddressMatchPublic]:
         if not address_lookup_enabled():
