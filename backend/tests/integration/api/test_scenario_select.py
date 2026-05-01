@@ -21,7 +21,6 @@ import pytest
 from app.policy.retrofits import LIBRARY
 from fastapi.testclient import TestClient
 
-
 KNOWN_SCENARIO_ID = next(s.id for s in LIBRARY["office"])
 
 
@@ -44,8 +43,7 @@ def _audit_rows(db_path: Path) -> list[tuple[str, str | None, str]]:
     conn = sqlite3.connect(str(db_path))
     try:
         rows = conn.execute(
-            "SELECT event_type, prediction_id, payload_json "
-            "FROM audit_log ORDER BY id"
+            "SELECT event_type, prediction_id, payload_json FROM audit_log ORDER BY id"
         ).fetchall()
         return [(r[0], r[1], r[2]) for r in rows]
     finally:
@@ -75,9 +73,7 @@ class TestHappyPath:
 
 
 class TestUnknownIds:
-    def test_unknown_scenario_id_returns_404(
-        self, client: TestClient, db_path: Path
-    ) -> None:
+    def test_unknown_scenario_id_returns_404(self, client: TestClient, db_path: Path) -> None:
         response = client.post(
             "/api/scenarios/not-a-real-scenario/select",
             json={"predictionId": "pred_abc123"},
@@ -85,9 +81,7 @@ class TestUnknownIds:
         assert response.status_code == 404
         assert _audit_rows(db_path) == []
 
-    def test_unknown_prediction_id_returns_404(
-        self, client: TestClient, db_path: Path
-    ) -> None:
+    def test_unknown_prediction_id_returns_404(self, client: TestClient, db_path: Path) -> None:
         response = client.post(
             f"/api/scenarios/{KNOWN_SCENARIO_ID}/select",
             json={"predictionId": "not-a-real-id"},
@@ -95,9 +89,7 @@ class TestUnknownIds:
         assert response.status_code == 404
         assert _audit_rows(db_path) == []
 
-    def test_blank_prediction_id_returns_422(
-        self, client: TestClient, db_path: Path
-    ) -> None:
+    def test_blank_prediction_id_returns_422(self, client: TestClient, db_path: Path) -> None:
         response = client.post(
             f"/api/scenarios/{KNOWN_SCENARIO_ID}/select",
             json={"predictionId": ""},
@@ -107,9 +99,7 @@ class TestUnknownIds:
 
 
 class TestIdempotency:
-    def test_rapid_duplicate_records_only_one_row(
-        self, client: TestClient, db_path: Path
-    ) -> None:
+    def test_rapid_duplicate_records_only_one_row(self, client: TestClient, db_path: Path) -> None:
         first = client.post(
             f"/api/scenarios/{KNOWN_SCENARIO_ID}/select",
             json={"predictionId": "pred_dup"},
