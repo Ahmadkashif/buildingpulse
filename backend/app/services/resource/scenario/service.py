@@ -11,8 +11,14 @@ from __future__ import annotations
 
 from app.domain.retrofits.engine import apply_scenarios
 from app.domain.retrofits.types import Scenario
+from app.policy.retrofits import LIBRARY
 
 __all__ = ["ScenarioResourceService"]
+
+
+_KNOWN_SCENARIO_IDS: frozenset[str] = frozenset(
+    scenario.id for scenarios in LIBRARY.values() for scenario in scenarios
+)
 
 
 class ScenarioResourceService:
@@ -39,3 +45,8 @@ class ScenarioResourceService:
             baseline_eui=baseline_eui_kbtu_per_sqft,
             sqft=gross_floor_area_sqft,
         )
+
+    def is_known_scenario_id(self, scenario_id: str) -> bool:
+        """True iff ``scenario_id`` is the ``id`` of any scenario in any
+        property-type bucket of the retrofit library."""
+        return scenario_id in _KNOWN_SCENARIO_IDS

@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scenarios/{scenario_id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select */
+        post: operations["select_api_scenarios__scenario_id__select_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sponsor": {
         parameters: {
             query?: never;
@@ -80,13 +97,13 @@ export interface paths {
             cookie?: never;
         };
         /** Cta */
-        get: operations["cta_api_sponsor_cta_head"];
+        get: operations["cta_api_sponsor_cta_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         /** Cta */
-        head: operations["cta_api_sponsor_cta_head"];
+        head: operations["cta_api_sponsor_cta_get"];
         patch?: never;
         trace?: never;
     };
@@ -269,6 +286,24 @@ export interface components {
             /** Reductionpct */
             reductionPct: number;
         };
+        /** ScenarioSelectEnvelope */
+        ScenarioSelectEnvelope: {
+            data: components["schemas"]["ScenarioSelectResult"];
+        };
+        /** ScenarioSelectRequest */
+        ScenarioSelectRequest: {
+            /** Predictionid */
+            predictionId: string;
+        };
+        /** ScenarioSelectResult */
+        ScenarioSelectResult: {
+            /** Deduped */
+            deduped: boolean;
+            /** Predictionid */
+            predictionId: string;
+            /** Scenarioid */
+            scenarioId: string;
+        };
         /** ScenariosResponseEnvelope */
         ScenariosResponseEnvelope: {
             /** Data */
@@ -414,6 +449,41 @@ export interface operations {
             };
         };
     };
+    select_api_scenarios__scenario_id__select_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scenario_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioSelectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioSelectEnvelope"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_api_sponsor_get: {
         parameters: {
             query?: never;
@@ -434,7 +504,7 @@ export interface operations {
             };
         };
     };
-    cta_api_sponsor_cta_head: {
+    cta_api_sponsor_cta_get: {
         parameters: {
             query: {
                 prediction_id: string;
@@ -464,7 +534,7 @@ export interface operations {
             };
         };
     };
-    cta_api_sponsor_cta_head: {
+    cta_api_sponsor_cta_get: {
         parameters: {
             query: {
                 prediction_id: string;

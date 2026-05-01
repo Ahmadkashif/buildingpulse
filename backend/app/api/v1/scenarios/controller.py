@@ -27,15 +27,25 @@ concern (the lead modal), not a security concern.
 from __future__ import annotations
 
 import re
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from app.deps import get_scenario_service
+from app.deps import (
+    get_audit_service,
+    get_request_id,
+    get_scenario_service,
+    get_trace_id,
+)
+from app.domain.audit import ScenarioSelected
 from app.schemas import FineYear, PropertyType
+from app.services.resource.audit.service import AuditService
 from app.services.resource.scenario.service import ScenarioResourceService
+
+_DEDUPE_WINDOW = timedelta(seconds=5)
 
 _PREDICTION_ID_PATTERN = re.compile(r"^pred_[A-Za-z0-9]+$")
 
@@ -63,6 +73,32 @@ class ScenariosResponseEnvelope(BaseModel):
     data: list[ScenarioPublic]
 
 
+class ScenarioSelectRequest(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+    prediction_id: str = Field(min_length=1)
+
+
+class ScenarioSelectResult(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+    prediction_id: str
+    scenario_id: str
+    deduped: bool
+
+
+class ScenarioSelectEnvelope(BaseModel):
+    data: ScenarioSelectResult
+
+
 class ScenariosController:
     """Owns the `/api/predictions/{prediction_id}/scenarios` router."""
 
@@ -74,6 +110,14 @@ class ScenariosController:
             methods=["GET"],
             status_code=status.HTTP_200_OK,
             response_model=ScenariosResponseEnvelope,
+            response_model_by_alias=True,
+        )
+        self.router.add_api_route(
+            "/scenarios/{scenario_id}/select",
+            self.select,
+            methods=["POST"],
+            status_code=status.HTTP_200_OK,
+            response_model=ScenarioSelectEnvelope,
             response_model_by_alias=True,
         )
 
@@ -122,11 +166,58 @@ class ScenariosController:
             )
         return {"data": items}
 
+    async def select(
+        self,
+        scenario_id: Annotated[str, Path(min_length=1)],
+        body: ScenarioSelectRequest,
+        scenario_service: Annotated[ScenarioResourceService, Depends(get_scenario_service)],
+        audit: Annotated[AuditService, Depends(get_audit_service)],
+    ) -> dict[str, Any]:
+        if _PREDICTION_ID_PATTERN.fullmatch(body.prediction_id) is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"prediction {body.prediction_id!r} not found",
+            )
+        if not scenario_service.is_known_scenario_id(scenario_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"scenario {scenario_id!r} not found",
+            )
+
+        now = datetime.now(UTC)
+        since_iso = (now - _DEDUPE_WINDOW).isoformat()
+        deduped = audit.scenario_selected_recently(
+            prediction_id=body.prediction_id,
+            scenario_id=scenario_id,
+            since_iso=since_iso,
+        )
+        if not deduped:
+            await audit.record(
+                ScenarioSelected(
+                    occurred_at=now,
+                    request_id=get_request_id(),
+                    trace_id=get_trace_id(),
+                    actor_session_id="",
+                    prediction_id=body.prediction_id,
+                    scenario_id=scenario_id,
+                )
+            )
+        return {
+            "data": {
+                "predictionId": body.prediction_id,
+                "scenarioId": scenario_id,
+                "deduped": deduped,
+            }
+        }
+
 
 router = ScenariosController().router
 
 __all__ = [
     "ScenarioPublic",
+    "ScenarioSelectEnvelope",
+    "ScenarioSelectRequest",
+    "ScenarioSelectResult",
     "ScenariosController",
     "ScenariosResponseEnvelope",
     "router",

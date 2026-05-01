@@ -531,6 +531,57 @@
         "title": "ScenarioPublic",
         "type": "object"
       },
+      "ScenarioSelectEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ScenarioSelectResult"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "ScenarioSelectEnvelope",
+        "type": "object"
+      },
+      "ScenarioSelectRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "predictionId": {
+            "minLength": 1,
+            "title": "Predictionid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "predictionId"
+        ],
+        "title": "ScenarioSelectRequest",
+        "type": "object"
+      },
+      "ScenarioSelectResult": {
+        "additionalProperties": false,
+        "properties": {
+          "deduped": {
+            "title": "Deduped",
+            "type": "boolean"
+          },
+          "predictionId": {
+            "title": "Predictionid",
+            "type": "string"
+          },
+          "scenarioId": {
+            "title": "Scenarioid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "predictionId",
+          "scenarioId",
+          "deduped"
+        ],
+        "title": "ScenarioSelectResult",
+        "type": "object"
+      },
       "ScenariosResponseEnvelope": {
         "properties": {
           "data": {
@@ -799,6 +850,56 @@
         "summary": "List"
       }
     },
+    "/api/scenarios/{scenario_id}/select": {
+      "post": {
+        "operationId": "select_api_scenarios__scenario_id__select_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scenario_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Scenario Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioSelectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioSelectEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select"
+      }
+    },
     "/api/sponsor": {
       "get": {
         "operationId": "get_api_sponsor_get",
@@ -819,7 +920,7 @@
     },
     "/api/sponsor/cta": {
       "get": {
-        "operationId": "cta_api_sponsor_cta_head",
+        "operationId": "cta_api_sponsor_cta_get",
         "parameters": [
           {
             "in": "query",
@@ -867,7 +968,7 @@
         "summary": "Cta"
       },
       "head": {
-        "operationId": "cta_api_sponsor_cta_head",
+        "operationId": "cta_api_sponsor_cta_get",
         "parameters": [
           {
             "in": "query",
