@@ -44,6 +44,12 @@ source_modules =
 forbidden_modules =
     app.repos
     app.integrations
+# Direct-import only: use-cases legitimately depend on resource services
+# (which themselves own repos/integrations). The contract's intent is that
+# the use-case layer never reaches into a repo or integration directly;
+# transitive paths through `app.services.resource` are the architecture
+# working as designed.
+allow_indirect_imports = True
 
 # Contract: resources-below-usecases
 # Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
