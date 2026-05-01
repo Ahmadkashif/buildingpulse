@@ -51,7 +51,9 @@ from app.repos.artifact_registry import ArtifactRegistry
 from app.repos.audit_repo import AuditRepo
 from app.repos.connection import connect
 from app.repos.lead_repo import LeadRepo
+from app.repos.ll84_index_registry import Ll84IndexRegistry
 from app.repos.peer_cohorts_registry import PeerCohortsRegistry
+from app.services.resource.address.service import AddressResourceService
 from app.services.resource.audit.service import AuditService
 from app.services.resource.lead.service import LeadResourceService
 from app.services.resource.notification.service import NotificationResourceService
@@ -69,13 +71,25 @@ SERVICE_NAME = "buildingpulse-backend"
 
 DEFAULT_ARTIFACTS_DIR = "./artifacts"
 ARTIFACTS_DIR_ENV = "ARTIFACTS_DIR"
+ADDRESS_LOOKUP_FLAG_ENV = "ADDRESS_LOOKUP_ENABLED"
 
 _request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 _telemetry_configured = False
 _logging_configured = False
 _artifact_registry: ArtifactRegistry | None = None
 _peer_cohorts_registry: PeerCohortsRegistry | None = None
+_ll84_index_registry: Ll84IndexRegistry | None = None
 _app_config: AppConfig | None = None
+
+
+def address_lookup_enabled() -> bool:
+    """Return whether the address-lookup endpoint is enabled.
+
+    Reads the ``ADDRESS_LOOKUP_ENABLED`` env var on every call so tests
+    can flip the flag inside a single FastAPI lifespan. Default is off.
+    """
+    raw = os.environ.get(ADDRESS_LOOKUP_FLAG_ENV, "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
 
 
 def init_app_config() -> AppConfig:
@@ -159,6 +173,38 @@ def _reset_peer_cohorts_registry() -> None:
     """Test-only hook: clear the cached peer cohorts registry."""
     global _peer_cohorts_registry
     _peer_cohorts_registry = None
+
+
+def init_ll84_index_registry(
+    artifacts_dir: str | None = None,
+) -> Ll84IndexRegistry:
+    """Build the process-wide Ll84IndexRegistry. Idempotent within a process."""
+    global _ll84_index_registry
+    if _ll84_index_registry is None:
+        _ll84_index_registry = Ll84IndexRegistry(
+            artifacts_dir or _resolve_artifacts_dir()
+        )
+    return _ll84_index_registry
+
+
+def get_ll84_index_registry() -> Ll84IndexRegistry:
+    """FastAPI dependency: yields the process-wide Ll84IndexRegistry."""
+    if _ll84_index_registry is None:
+        raise RuntimeError(
+            "Ll84IndexRegistry not initialized; lifespan startup did not run"
+        )
+    return _ll84_index_registry
+
+
+def _reset_ll84_index_registry() -> None:
+    """Test-only hook: clear the cached LL84 index registry."""
+    global _ll84_index_registry
+    _ll84_index_registry = None
+
+
+def get_address_service() -> AddressResourceService:
+    """FastAPI dependency: yields the AddressResourceService."""
+    return AddressResourceService(get_ll84_index_registry().index)
 
 
 def _add_request_id(_logger: Any, _name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
@@ -352,16 +398,20 @@ async def get_lead_capture_use_case() -> AsyncIterator[LeadCaptureUseCaseService
 
 
 __all__ = [
+    "ADDRESS_LOOKUP_FLAG_ENV",
     "ARTIFACTS_DIR_ENV",
     "DEFAULT_ARTIFACTS_DIR",
     "REQUEST_ID_HEADER",
     "RequestIdMiddleware",
+    "address_lookup_enabled",
     "configure_logging",
     "configure_telemetry",
+    "get_address_service",
     "get_app_config",
     "get_artifact_registry",
     "get_audit_service",
     "get_lead_capture_use_case",
+    "get_ll84_index_registry",
     "get_logger",
     "get_pdf_generation_use_case",
     "get_peer_cohorts_registry",
@@ -372,6 +422,7 @@ __all__ = [
     "get_trace_id",
     "init_app_config",
     "init_artifact_registry",
+    "init_ll84_index_registry",
     "init_peer_cohorts_registry",
     "instrument_app",
 ]
