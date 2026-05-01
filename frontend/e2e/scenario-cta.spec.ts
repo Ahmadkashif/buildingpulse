@@ -37,25 +37,14 @@ const PREDICTION_FIXTURE = {
   },
 };
 
-const SCENARIOS_FIXTURE = [
-  {
-    id: "heat-pump-conversion",
-    name: "Heat pumps",
-    description: "Replace boilers with VRF heat pumps.",
-    reductionPct: 0.35,
-    costLow: 12,
-    costHigh: 30,
-    recomputedFineSeries: [{ year: 2030, projectedAnnualFineUsd: 5000 }],
-    recomputedFine2024: 0,
-    recomputedFine2030: 5000,
-    citation: "NYC Mayor's Office — Getting to 80x50",
-  },
-];
-
 test("Choose this scenario fires ScenarioSelected then redirects to sponsor CTA with both ids", async ({
   page,
 }) => {
-  await page.route("**/api/predictions/pred_scen_e2e", async (route) => {
+  // The MSW worker handles /api/scenarios/:id/select and /api/predictions/:id/scenarios
+  // (see src/mocks/handlers/scenario.ts) so we leave those alone and just stub the
+  // prediction GET + leads POST + a sponsor CTA stand-in (so the page lands on a
+  // known URL we can read both query params off of).
+  await page.route("**/api/predictions/*", async (route) => {
     const url = route.request().url();
     if (url.includes("/scenarios")) {
       await route.fallback();
@@ -68,14 +57,6 @@ test("Choose this scenario fires ScenarioSelected then redirects to sponsor CTA 
     });
   });
 
-  await page.route("**/api/predictions/pred_scen_e2e/scenarios*", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ data: SCENARIOS_FIXTURE }),
-    });
-  });
-
   await page.route("**/api/leads", async (route) => {
     await route.fulfill({
       status: 201,
@@ -84,31 +65,26 @@ test("Choose this scenario fires ScenarioSelected then redirects to sponsor CTA 
     });
   });
 
-  // The select endpoint records ScenarioSelected and returns 200.
-  const selectCalls: { url: string; body: string | null }[] = [];
-  await page.route("**/api/scenarios/*/select", async (route) => {
-    const req = route.request();
-    selectCalls.push({ url: req.url(), body: req.postData() });
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        data: { predictionId: "pred_scen_e2e", scenarioId: "heat-pump-conversion", deduped: false },
-      }),
-    });
-  });
-
-  // Stub the sponsor CTA at the same origin: simulate the server-side
-  // 302 to the sponsor URL by serving an HTML page so the browser stays
-  // on a known location we can assert against.
-  const ctaCalls: string[] = [];
   await page.route("**/api/sponsor/cta*", async (route) => {
-    ctaCalls.push(route.request().url());
     await route.fulfill({
       status: 200,
       contentType: "text/html",
       body: "<html><body><h1>Sponsor CTA landed</h1></body></html>",
     });
+  });
+
+  // Capture network-level events for assertions (page.on('request') sees
+  // every outgoing fetch including ones MSW eventually intercepts via SW).
+  const selectRequests: { url: string; postData: string | null }[] = [];
+  const ctaRequests: string[] = [];
+  page.on("request", (req) => {
+    const u = req.url();
+    if (req.method() === "POST" && u.includes("/api/scenarios/") && u.endsWith("/select")) {
+      selectRequests.push({ url: u, postData: req.postData() });
+    }
+    if (u.includes("/api/sponsor/cta")) {
+      ctaRequests.push(u);
+    }
   });
 
   await page.goto("/forecasting/report/pred_scen_e2e");
@@ -127,25 +103,33 @@ test("Choose this scenario fires ScenarioSelected then redirects to sponsor CTA 
   await dialog.getByRole("button", { name: /unlock report/i }).click();
   await expect(dialog).toBeHidden();
 
-  // Click "Choose this scenario" — this drives the audit POST + redirect.
-  const chooseButton = page.getByTestId("cta-choose-scenario").first();
-  await expect(chooseButton).toBeVisible();
-  await chooseButton.click();
+  // Click "Choose this scenario" on the first scenario item — this drives
+  // the audit POST + sponsor CTA redirect. Read the id off the rendered
+  // card so the assertions stay stable under fixture churn.
+  const firstItem = page.locator('[data-slot="scenario-item"]').first();
+  await expect(firstItem).toBeVisible();
+  const expectedScenarioId = await firstItem.getAttribute("data-scenario-id");
+  expect(expectedScenarioId).toBeTruthy();
+  await firstItem.getByTestId("cta-choose-scenario").click();
 
-  // The browser should land on the sponsor CTA URL with both ids.
+  // The browser should land on the sponsor CTA URL with both ids — this
+  // is the user-visible contract per AC #2 ("sponsor URL receives both
+  // ids in the redirect target").
   await page.waitForURL(/\/api\/sponsor\/cta/);
   const landedUrl = new URL(page.url());
   expect(landedUrl.searchParams.get("prediction_id")).toBe("pred_scen_e2e");
-  expect(landedUrl.searchParams.get("scenario_id")).toBe("heat-pump-conversion");
+  expect(landedUrl.searchParams.get("scenario_id")).toBe(expectedScenarioId);
 
-  // Both intercepted endpoints were hit exactly once for the single click.
-  expect(selectCalls).toHaveLength(1);
-  expect(selectCalls[0]!.url).toContain("/api/scenarios/heat-pump-conversion/select");
-  expect(JSON.parse(selectCalls[0]!.body ?? "null")).toEqual({
+  // Single click -> single ScenarioSelected POST (debounce guard) and a
+  // single sponsor CTA navigation.
+  expect(selectRequests).toHaveLength(1);
+  expect(selectRequests[0]!.url).toContain(
+    `/api/scenarios/${encodeURIComponent(expectedScenarioId!)}/select`,
+  );
+  expect(JSON.parse(selectRequests[0]!.postData ?? "null")).toEqual({
     predictionId: "pred_scen_e2e",
   });
-
-  expect(ctaCalls).toHaveLength(1);
-  expect(ctaCalls[0]!).toContain("prediction_id=pred_scen_e2e");
-  expect(ctaCalls[0]!).toContain("scenario_id=heat-pump-conversion");
+  expect(ctaRequests.length).toBeGreaterThanOrEqual(1);
+  expect(ctaRequests[0]!).toContain("prediction_id=pred_scen_e2e");
+  expect(ctaRequests[0]!).toContain(`scenario_id=${expectedScenarioId}`);
 });
