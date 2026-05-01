@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { use } from "react";
-import { Download, FileText, Pencil, Leaf, Phone, Sun, Thermometer, Wind } from "lucide-react";
+import { FileText, Pencil, Leaf, Phone, Sun, Thermometer, Wind } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shell/page-header";
@@ -12,7 +12,7 @@ import { FineSeriesChart } from "@/components/report/fine-series-chart";
 import { InfoCard } from "@/components/report/info-card";
 import { InsightCard } from "@/components/report/insight-card";
 import { ActionColumn } from "@/components/report/action-column";
-import { ExportDialog } from "@/components/report/export-dialog";
+import { ExportPdfButton } from "@/components/report/export-pdf-button";
 import { SponsorStrip } from "@/components/report/sponsor-strip";
 import { ScenariosCard } from "@/components/report/scenarios-card";
 import { LeadModal, type LeadModalContext } from "@/components/modal/lead-modal";
@@ -53,7 +53,6 @@ const BOROUGH_LABELS: Record<BuildingBorough, string> = {
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [exportOpen, setExportOpen] = React.useState(false);
   const [leadOpen, setLeadOpen] = React.useState(false);
 
   const { isUnlocked, unlock } = useUnlock();
@@ -157,16 +156,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           <InfoCard title="Building Profile" rows={profile} />
 
           <ActionColumn>
-            <Button
-              variant="tertiary"
-              width="full"
-              onClick={() => setExportOpen(true)}
-              disabled={!unlocked}
-              data-testid="cta-export-pdf"
-              aria-disabled={!unlocked || undefined}
-            >
-              <Download className="size-4" /> Export Full PDF Report
-            </Button>
+            <ExportPdfButton predictionId={id} unlocked={unlocked} />
             <Button
               variant="secondary"
               width="full"
@@ -214,7 +204,6 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         )}
       </section>
 
-      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} reportId={id} />
       <LeadModal
         open={leadOpen}
         onClose={() => setLeadOpen(false)}
