@@ -1,8 +1,8 @@
 # Page Flow — Predict Site EUI
 
-Single user flow, three route segments. The URL uses `/forecasting/*` for historical reasons; the domain is Site EUI prediction.
+Single user flow, three route segments under `/report/*`. The legacy `/forecasting/*` paths 308-redirect to the new ones for one release.
 
-## 1. Form · `/forecasting`
+## 1. Form · `/report`
 
 ### Layout
 
@@ -15,18 +15,18 @@ Single user flow, three route segments. The URL uses `/forecasting/*` for histor
 
 ### Data flow
 
-On submit, `usePredict()` posts `CreateBuildingInput` to `POST /api/predictions`. The full `PredictionResponse` is cached by id in TanStack Query, then the form redirects to `/forecasting/predicting?predictionId={id}`.
+On submit, `usePredict()` posts `CreateBuildingInput` to `POST /api/predictions`. The full `PredictionResponse` is cached by id in TanStack Query, then the form redirects to `/report/predicting?predictionId={id}`.
 
-## 2. Loading · `/forecasting/predicting?predictionId=…`
+## 2. Loading · `/report/predicting?predictionId=…`
 
-Full-viewport progress screen. Animates 0 → 100% and cycles through copy from `PREDICTION_STAGES`. On completion, redirects to `/forecasting/report/{predictionId}`.
+Full-viewport progress screen. Animates 0 → 100% and cycles through copy from `PREDICTION_STAGES`. On completion, redirects to `/report/{predictionId}`.
 
 ### Layout
 
 - `ForecastProgress` — centered column with rotating headline, status copy, progress bar + percent.
 - Ambient primary-gradient glow behind the bar.
 
-## 3. Result · `/forecasting/report/[id]`
+## 3. Result · `/report/[id]`
 
 ### Layout
 

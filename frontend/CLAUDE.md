@@ -12,9 +12,9 @@ Site EUI prediction UI for NYC building owners. A user submits building specific
 
 ## Workflow
 
-1. `/forecasting` — form page for building specifications.
-2. `/forecasting/predicting?predictionId=…` — loading animation with 10% milestone copy.
-3. `/forecasting/report/[id]` — result layout (KPIs: EUI / percentile / LL97; peer cohort chart; insights; action column).
+1. `/report` — form page for building specifications.
+2. `/report/predicting?predictionId=…` — loading animation with 10% milestone copy.
+3. `/report/[id]` — result layout (KPIs: EUI / percentile / LL97; peer cohort chart; insights; action column).
 4. Export dialog — PDF export stub reuses the progress primitive.
 
 See `specs/models/prediction.md` for the `PredictionResponse` contract shared with the backend.
