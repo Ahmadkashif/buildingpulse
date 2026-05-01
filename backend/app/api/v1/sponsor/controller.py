@@ -67,7 +67,7 @@ class SponsorController:
         self.router.add_api_route(
             "/sponsor/cta",
             self.cta,
-            methods=["GET", "HEAD"],
+            methods=["GET"],
             status_code=status.HTTP_302_FOUND,
             response_class=RedirectResponse,
         )

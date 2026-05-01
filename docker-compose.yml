@@ -7,6 +7,12 @@ services:
       - "8000:8000"
     environment:
       DB_PATH: /app/var/buildingpulse.db
+      SPONSOR_ID: dev-sponsor
+      SPONSOR_NAME: Dev Sponsor
+      SPONSOR_LOGO_URL: https://placehold.co/200x60?text=Sponsor
+      SPONSOR_CTA_LABEL: Get a quote
+      SPONSOR_CTA_URL: https://example.com/quote
+      SPONSOR_LEAD_EMAIL: leads@example.com
     volumes:
       - backend-var:/app/var
     healthcheck:
