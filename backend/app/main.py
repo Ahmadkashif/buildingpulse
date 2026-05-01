@@ -18,11 +18,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.predictions import router as predictions_router
+from app.api.v1.sponsor import router as sponsor_router
 from app.deps import (
     RequestIdMiddleware,
     configure_logging,
     configure_telemetry,
     get_logger,
+    init_app_config,
     init_artifact_registry,
     init_peer_cohorts_registry,
     instrument_app,
@@ -37,6 +39,8 @@ configure_telemetry()
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     log = get_logger("app.main")
+    config = init_app_config()
+    log.info("startup.config_loaded", sponsor_id=config.sponsor.id)
     conn = connect()
     try:
         run_migrations(conn)
@@ -65,5 +69,6 @@ app.add_middleware(
 instrument_app(app)
 
 app.include_router(predictions_router, prefix="/api")
+app.include_router(sponsor_router, prefix="/api")
 
 __all__ = ["app"]

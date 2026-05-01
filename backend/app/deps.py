@@ -44,12 +44,14 @@ from opentelemetry.sdk.trace.export import (
 )
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.config import AppConfig, load_app_config
 from app.repos.artifact_registry import ArtifactRegistry
 from app.repos.audit_repo import AuditRepo
 from app.repos.connection import connect
 from app.repos.peer_cohorts_registry import PeerCohortsRegistry
 from app.services.resource.audit.service import AuditService
 from app.services.resource.prediction.service import PredictionResourceService
+from app.services.resource.sponsor.service import SponsorResourceService
 
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
@@ -62,6 +64,39 @@ _telemetry_configured = False
 _logging_configured = False
 _artifact_registry: ArtifactRegistry | None = None
 _peer_cohorts_registry: PeerCohortsRegistry | None = None
+_app_config: AppConfig | None = None
+
+
+def init_app_config() -> AppConfig:
+    """Build the process-wide :class:`AppConfig`. Idempotent within a process.
+
+    Called from the FastAPI lifespan hook so missing or invalid env vars
+    fail at startup, not on the first request that touches them.
+    """
+    global _app_config
+    if _app_config is None:
+        _app_config = load_app_config()
+    return _app_config
+
+
+def get_app_config() -> AppConfig:
+    """FastAPI dependency: yields the process-wide AppConfig."""
+    if _app_config is None:
+        raise RuntimeError(
+            "AppConfig not initialized; lifespan startup did not run"
+        )
+    return _app_config
+
+
+def _reset_app_config() -> None:
+    """Test-only hook: clear the cached config so a new one can be built."""
+    global _app_config
+    _app_config = None
+
+
+def get_sponsor_service() -> SponsorResourceService:
+    """FastAPI dependency: yields the SponsorResourceService."""
+    return SponsorResourceService(get_app_config().sponsor)
 
 
 def _resolve_artifacts_dir() -> str:
@@ -268,13 +303,16 @@ __all__ = [
     "RequestIdMiddleware",
     "configure_logging",
     "configure_telemetry",
+    "get_app_config",
     "get_artifact_registry",
     "get_audit_service",
     "get_logger",
     "get_peer_cohorts_registry",
     "get_prediction_service",
     "get_request_id",
+    "get_sponsor_service",
     "get_trace_id",
+    "init_app_config",
     "init_artifact_registry",
     "init_peer_cohorts_registry",
     "instrument_app",

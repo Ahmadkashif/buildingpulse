@@ -1,3 +1,5 @@
-"""Package placeholder."""
+"""Sponsor controller package."""
 
-__all__: list[str] = []
+from app.api.v1.sponsor.controller import router
+
+__all__ = ["router"]
