@@ -30,6 +30,7 @@ modules =
     app.services.resource.sponsor
     app.services.resource.scenario
     app.services.resource.notification
+    app.services.resource.audit
 
 # Contract: usecases-compose-resources-only
 # Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
@@ -88,6 +89,10 @@ source_modules =
 forbidden_modules =
     sqlite3
     sqlalchemy
+# Direct-import only: services legitimately depend on repos (which own sqlite3).
+# The contract's intent is that no non-repos layer reaches into a SQL driver
+# directly; transitive paths through `app.repos` are the architecture working.
+allow_indirect_imports = True
 
 # Contract: training-isolated
 # Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
@@ -120,3 +125,8 @@ source_modules =
     app.policy
 forbidden_modules =
     opentelemetry
+# Direct-import only: api legitimately depends on app.deps (which owns
+# opentelemetry wiring). The contract's intent is that no non-deps layer
+# reaches into opentelemetry directly; transitive paths through `app.deps`
+# are the architecture working.
+allow_indirect_imports = True

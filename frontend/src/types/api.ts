@@ -44,6 +44,13 @@ export interface components {
             /** Yearbuilt */
             yearBuilt: number;
         };
+        /** FineYear */
+        FineYear: {
+            /** Projectedannualfineusd */
+            projectedAnnualFineUsd: number;
+            /** Year */
+            year: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -57,6 +64,8 @@ export interface components {
             capKbtuPerSqft2024To2029: number;
             /** Capkbtupersqft2030To2034 */
             capKbtuPerSqft2030To2034: number;
+            /** Fineseries */
+            fineSeries: components["schemas"]["FineYear"][];
             /** Projectedannualfineusd2024 */
             projectedAnnualFineUsd2024: number;
             /** Projectedannualfineusd2030 */
@@ -78,16 +87,10 @@ export interface components {
         };
         /** PeerCohort */
         PeerCohort: {
-            /**
-             * Ageband
-             * @enum {string}
-             */
-            ageBand: "pre-1950" | "1950-1979" | "1980-1999" | "2000-plus";
-            /**
-             * Borough
-             * @enum {string}
-             */
-            borough: "manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island";
+            /** Ageband */
+            ageBand: ("pre-1950" | "1950-1979" | "1980-1999" | "2000-plus") | null;
+            /** Borough */
+            borough: ("manhattan" | "brooklyn" | "queens" | "bronx" | "staten-island") | null;
             /**
              * Propertytype
              * @enum {string}

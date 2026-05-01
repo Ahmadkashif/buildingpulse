@@ -61,14 +61,27 @@ def valid_response_body() -> dict[str, Any]:
             "projectedAnnualFineUsd2024": 0,
             "projectedAnnualFineUsd2030": 12400,
             "atRisk": True,
+            "fineSeries": [
+                {"year": 2026, "projectedAnnualFineUsd": 0},
+                {"year": 2027, "projectedAnnualFineUsd": 0},
+                {"year": 2028, "projectedAnnualFineUsd": 0},
+                {"year": 2029, "projectedAnnualFineUsd": 0},
+                {"year": 2030, "projectedAnnualFineUsd": 12400},
+                {"year": 2031, "projectedAnnualFineUsd": 12400},
+                {"year": 2032, "projectedAnnualFineUsd": 12400},
+                {"year": 2033, "projectedAnnualFineUsd": 12400},
+                {"year": 2034, "projectedAnnualFineUsd": 12400},
+            ],
         },
     }
 
 
 @pytest.fixture
-def client() -> Any:
-    """FastAPI TestClient. Red until `app.main` is implemented."""
+def client(tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> Any:
+    """FastAPI TestClient with a per-test SQLite DB and lifespan-applied migrations."""
     from app.main import app  # type: ignore[attr-defined]
     from fastapi.testclient import TestClient
 
-    return TestClient(app)
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "buildingpulse.db"))
+    with TestClient(app) as c:
+        yield c

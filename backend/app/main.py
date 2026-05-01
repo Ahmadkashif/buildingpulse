@@ -23,6 +23,8 @@ from app.deps import (
     configure_logging,
     configure_telemetry,
     get_logger,
+    init_artifact_registry,
+    init_peer_cohorts_registry,
     instrument_app,
 )
 from app.repos.connection import connect
@@ -41,6 +43,10 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         log.info("startup.migrations_applied")
     finally:
         conn.close()
+    registry = init_artifact_registry()
+    log.info("startup.artifacts_loaded", model_version=registry.model_version)
+    cohorts = init_peer_cohorts_registry()
+    log.info("startup.peer_cohorts_loaded", rows=int(cohorts.cohorts.shape[0]))
     yield
 
 
