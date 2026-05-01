@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { use } from "react";
-import { Download, FileText, Pencil, Leaf, Sun, Thermometer, Wind } from "lucide-react";
+import { Download, FileText, Pencil, Leaf, Phone, Sun, Thermometer, Wind } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shell/page-header";
@@ -14,7 +14,9 @@ import { InsightCard } from "@/components/report/insight-card";
 import { ActionColumn } from "@/components/report/action-column";
 import { ExportDialog } from "@/components/report/export-dialog";
 import { SponsorStrip } from "@/components/report/sponsor-strip";
+import { LeadModal, type LeadModalContext } from "@/components/modal/lead-modal";
 import { usePrediction } from "@/hooks/use-prediction";
+import { useUnlock } from "@/providers/unlock-provider";
 import type {
   BuildingBorough,
   BuildingPropertyType,
@@ -50,6 +52,10 @@ const BOROUGH_LABELS: Record<BuildingBorough, string> = {
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [exportOpen, setExportOpen] = React.useState(false);
+  const [leadOpen, setLeadOpen] = React.useState(false);
+
+  const { isUnlocked, unlock } = useUnlock();
+  const unlocked = isUnlocked(id);
 
   const query = usePrediction(id);
 
@@ -136,10 +142,23 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           <InfoCard title="Building Profile" rows={profile} />
 
           <ActionColumn>
-            <Button variant="tertiary" width="full" onClick={() => setExportOpen(true)}>
+            <Button
+              variant="tertiary"
+              width="full"
+              onClick={() => setExportOpen(true)}
+              disabled={!unlocked}
+              data-testid="cta-export-pdf"
+              aria-disabled={!unlocked || undefined}
+            >
               <Download className="size-4" /> Export Full PDF Report
             </Button>
-            <Button variant="secondary" width="full">
+            <Button
+              variant="secondary"
+              width="full"
+              disabled={!unlocked}
+              data-testid="cta-retrofit-scenarios"
+              aria-disabled={!unlocked || undefined}
+            >
               <FileText className="size-4" /> View Retrofit Options
             </Button>
             <Button variant="tertiary" width="full">
@@ -149,7 +168,44 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         </div>
       </div>
 
+      <section
+        data-testid="report-bottom-cta"
+        className="border-outline-variant/40 mt-4 flex flex-col items-center gap-3 rounded-2xl border-t border-dashed py-8 text-center"
+      >
+        {unlocked ? (
+          <>
+            <h2 className="font-heading text-xl font-semibold">You&apos;re unlocked</h2>
+            <p className="text-on-surface-variant max-w-prose text-sm">
+              Retrofit scenarios and the PDF export are now available. A contractor will reach out
+              shortly.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="font-heading text-xl font-semibold">Ready to fix this?</h2>
+            <p className="text-on-surface-variant max-w-prose text-sm">
+              Talk to a vetted contractor about retrofits that bring this building back into
+              compliance — and unlock your PDF report and retrofit scenarios.
+            </p>
+            <Button
+              variant="gradient"
+              size="lg"
+              onClick={() => setLeadOpen(true)}
+              data-testid="cta-talk-to-contractor"
+            >
+              <Phone className="size-4" /> Talk to a contractor
+            </Button>
+          </>
+        )}
+      </section>
+
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} reportId={id} />
+      <LeadModal
+        open={leadOpen}
+        onClose={() => setLeadOpen(false)}
+        onSuccess={() => unlock(id)}
+        context={buildLeadContext(id, prediction)}
+      />
     </div>
   );
 }
@@ -250,6 +306,24 @@ function buildInsights(p: PredictionResponse): PredictionInsight[] {
   }
 
   return insights.slice(0, 4);
+}
+
+function buildLeadContext(id: string, p: PredictionResponse): LeadModalContext {
+  const reportUrl =
+    typeof window !== "undefined" && window.location
+      ? `${window.location.origin}/forecasting/report/${id}`
+      : `/forecasting/report/${id}`;
+  return {
+    predictionId: id,
+    propertyType: p.input.propertyType,
+    borough: p.input.borough,
+    grossFloorAreaSqft: p.input.grossFloorAreaSqft,
+    yearBuilt: p.input.yearBuilt,
+    predictedEui: p.prediction.siteEuiKbtuPerSqft,
+    projectedFineUsd: p.ll97.projectedAnnualFineUsd2030,
+    atRisk: p.ll97.atRisk,
+    reportUrl,
+  };
 }
 
 function buildProfile(p: PredictionResponse) {
