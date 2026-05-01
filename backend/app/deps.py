@@ -44,6 +44,7 @@ from opentelemetry.sdk.trace.export import (
 )
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.repos.artifact_registry import ArtifactRegistry
 from app.repos.audit_repo import AuditRepo
 from app.repos.connection import connect
 from app.services.resource.audit.service import AuditService
@@ -51,9 +52,45 @@ from app.services.resource.audit.service import AuditService
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
 
+DEFAULT_ARTIFACTS_DIR = "./artifacts"
+ARTIFACTS_DIR_ENV = "ARTIFACTS_DIR"
+
 _request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 _telemetry_configured = False
 _logging_configured = False
+_artifact_registry: ArtifactRegistry | None = None
+
+
+def _resolve_artifacts_dir() -> str:
+    return os.environ.get(ARTIFACTS_DIR_ENV, DEFAULT_ARTIFACTS_DIR)
+
+
+def init_artifact_registry(artifacts_dir: str | None = None) -> ArtifactRegistry:
+    """Build the process-wide ArtifactRegistry. Idempotent within a process.
+
+    Called from the FastAPI lifespan hook. Re-running with the registry
+    already loaded is a no-op so the artifacts file system is read exactly
+    once per process.
+    """
+    global _artifact_registry
+    if _artifact_registry is None:
+        _artifact_registry = ArtifactRegistry(artifacts_dir or _resolve_artifacts_dir())
+    return _artifact_registry
+
+
+def get_artifact_registry() -> ArtifactRegistry:
+    """FastAPI dependency: yields the process-wide ArtifactRegistry."""
+    if _artifact_registry is None:
+        raise RuntimeError(
+            "ArtifactRegistry not initialized; lifespan startup did not run"
+        )
+    return _artifact_registry
+
+
+def _reset_artifact_registry() -> None:
+    """Test-only hook: clear the cached registry so a new one can be built."""
+    global _artifact_registry
+    _artifact_registry = None
 
 
 def _add_request_id(_logger: Any, _name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
@@ -188,13 +225,17 @@ async def get_audit_service() -> AsyncIterator[AuditService]:
 
 
 __all__ = [
+    "ARTIFACTS_DIR_ENV",
+    "DEFAULT_ARTIFACTS_DIR",
     "REQUEST_ID_HEADER",
     "RequestIdMiddleware",
     "configure_logging",
     "configure_telemetry",
+    "get_artifact_registry",
     "get_audit_service",
     "get_logger",
     "get_request_id",
     "get_trace_id",
+    "init_artifact_registry",
     "instrument_app",
 ]
