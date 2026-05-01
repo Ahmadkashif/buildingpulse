@@ -45,9 +45,7 @@ class TestForbiddenImports:
             imports = _top_level_imports(path.read_text())
             if forbidden in imports:
                 offenders.append(str(path.relative_to(BACKEND_DIR)))
-        assert not offenders, (
-            f"Phase 1 must not import {forbidden!r}; found in: {offenders}"
-        )
+        assert not offenders, f"Phase 1 must not import {forbidden!r}; found in: {offenders}"
 
 
 class TestForbiddenStrings:
@@ -57,9 +55,7 @@ class TestForbiddenStrings:
         for path in _app_python_files():
             if forbidden in path.read_text():
                 offenders.append(str(path.relative_to(BACKEND_DIR)))
-        assert not offenders, (
-            f"Phase 1 must not reference {forbidden!r}; found in: {offenders}"
-        )
+        assert not offenders, f"Phase 1 must not reference {forbidden!r}; found in: {offenders}"
 
 
 class TestArtifactsDirectoryAbsent:

@@ -10,9 +10,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from pydantic import ValidationError
-
 from app.schemas import Borough, CreateBuildingInput, PropertyType
+from pydantic import ValidationError
 
 
 def _assert_field_error(exc: ValidationError, field_alias: str) -> None:
@@ -160,9 +159,7 @@ class TestGrossFloorAreaBounds:
         body = {**valid_request_body, "grossFloorAreaSqft": 500}
         CreateBuildingInput.model_validate(body)
 
-    def test_accepts_upper_boundary_5_000_000(
-        self, valid_request_body: dict[str, Any]
-    ) -> None:
+    def test_accepts_upper_boundary_5_000_000(self, valid_request_body: dict[str, Any]) -> None:
         body = {**valid_request_body, "grossFloorAreaSqft": 5_000_000}
         CreateBuildingInput.model_validate(body)
 

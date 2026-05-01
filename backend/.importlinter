@@ -1,0 +1,122 @@
+[importlinter]
+root_packages =
+    app
+    training
+include_external_packages = True
+
+# Contract: layers
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# Layering rule: api → services → (repos | integrations) → domain → (schemas | policy).
+[importlinter:contract:layers]
+name = Layered architecture
+type = layers
+layers =
+    app.api
+    app.services
+    app.repos | app.integrations
+    app.domain
+    app.schemas | app.policy
+
+# Contract: resource-leaves
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# Resource services are leaves — they never import each other. Cross-resource
+# composition lives in a use-case service.
+[importlinter:contract:resource-leaves]
+name = Resource services do not import each other
+type = independence
+modules =
+    app.services.resource.prediction
+    app.services.resource.lead
+    app.services.resource.sponsor
+    app.services.resource.scenario
+    app.services.resource.notification
+
+# Contract: usecases-compose-resources-only
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# Use-case services compose resource services. They never reach into repos
+# or integrations directly.
+[importlinter:contract:usecases-compose-resources-only]
+name = Use-case services may not import repos or integrations directly
+type = forbidden
+source_modules =
+    app.services.usecase
+forbidden_modules =
+    app.repos
+    app.integrations
+
+# Contract: resources-below-usecases
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# Resource services sit below use-case services in the call graph and never
+# import upward.
+[importlinter:contract:resources-below-usecases]
+name = Resource services may not import use-case services
+type = forbidden
+source_modules =
+    app.services.resource
+forbidden_modules =
+    app.services.usecase
+
+# Contract: domain-pure
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# Domain is the load-bearing pure layer — zero edges into the rest of app/.
+[importlinter:contract:domain-pure]
+name = Domain has no app-internal dependencies
+type = forbidden
+source_modules =
+    app.domain
+forbidden_modules =
+    app.api
+    app.services
+    app.repos
+    app.integrations
+    app.schemas
+
+# Contract: sql-confined
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# SQL drivers may only be imported by the repos layer. Keeps the SQLite →
+# Postgres migration boundary to a single layer.
+[importlinter:contract:sql-confined]
+name = SQL drivers may only be imported by the repos layer
+type = forbidden
+source_modules =
+    app.api
+    app.services
+    app.domain
+    app.integrations
+    app.schemas
+    app.policy
+forbidden_modules =
+    sqlite3
+    sqlalchemy
+
+# Contract: training-isolated
+# Authored by: prd.md → "Technical Specifications" → "import-linter contracts (.importlinter)"
+# The offline training pipeline must not import the running app.
+[importlinter:contract:training-isolated]
+name = Training pipeline does not import the running app
+type = forbidden
+source_modules =
+    training
+forbidden_modules =
+    app.api
+    app.services
+    app.repos
+    app.integrations
+
+# Contract: otel-confined
+# Authored by: prd.md → "Technical Specifications" → "Telemetry stack"
+# Only app/deps.py and app/main.py may import opentelemetry. Every other
+# layer stays framework-agnostic.
+[importlinter:contract:otel-confined]
+name = OpenTelemetry is confined to deps.py and main.py
+type = forbidden
+source_modules =
+    app.api
+    app.services
+    app.repos
+    app.integrations
+    app.domain
+    app.schemas
+    app.policy
+forbidden_modules =
+    opentelemetry

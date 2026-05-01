@@ -14,8 +14,7 @@ class TestAppConstruction:
 
         routes = [(r.path, r.methods) for r in app.routes if hasattr(r, "methods")]
         assert any(
-            path == "/api/predictions" and methods and "POST" in methods
-            for path, methods in routes
+            path == "/api/predictions" and methods and "POST" in methods for path, methods in routes
         )
 
 
@@ -31,9 +30,7 @@ class TestCors:
         )
         assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
 
-    def test_preflight_from_unrelated_origin_is_not_allowed(
-        self, client: TestClient
-    ) -> None:
+    def test_preflight_from_unrelated_origin_is_not_allowed(self, client: TestClient) -> None:
         response = client.options(
             "/api/predictions",
             headers={
@@ -63,9 +60,7 @@ class TestOpenApi:
         )
         assert "CreateBuildingInput" in request_ref
 
-    def test_openapi_201_response_references_prediction_response(
-        self, client: TestClient
-    ) -> None:
+    def test_openapi_201_response_references_prediction_response(self, client: TestClient) -> None:
         schema = client.get("/openapi.json").json()
         post_op = schema["paths"]["/api/predictions"]["post"]
         responses = post_op["responses"]

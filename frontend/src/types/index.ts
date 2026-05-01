@@ -1,4 +1,5 @@
-export type { ApiResponse, ApiError } from "./api";
+export type { ApiResponse, ApiError } from "./envelope";
+export type { paths, components, operations } from "./api";
 export type {
   BuildingBorough,
   BuildingPropertyType,

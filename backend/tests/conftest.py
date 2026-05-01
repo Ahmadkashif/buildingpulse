@@ -68,8 +68,7 @@ def valid_response_body() -> dict[str, Any]:
 @pytest.fixture
 def client() -> Any:
     """FastAPI TestClient. Red until `app.main` is implemented."""
-    from fastapi.testclient import TestClient
-
     from app.main import app  # type: ignore[attr-defined]
+    from fastapi.testclient import TestClient
 
     return TestClient(app)

@@ -1,0 +1,178 @@
+name: CI
+
+# Six parallel merge gates per prd.md → "Locked CI/quality decisions":
+#   1. static        — ruff + ruff format --check + mypy --strict + lint-imports
+#   2. unit          — pytest unit + per-layer coverage rubric
+#   3. integration   — pytest integration suite
+#   4. e2e           — Playwright happy-path against the frontend
+#   5. schema-drift  — OpenAPI dump diff + frontend type codegen diff
+#   6. mutation      — mutmut on app/domain
+# All six are required by branch protection on main.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  static:
+    name: static (ruff + mypy + lint-imports)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install backend (dev extras)
+        run: python -m pip install -e 'backend[dev]'
+      - name: ruff check
+        working-directory: backend
+        run: python -m ruff check app tests
+      - name: ruff format --check
+        working-directory: backend
+        run: python -m ruff format --check app tests
+      - name: mypy --strict
+        working-directory: backend
+        run: python -m mypy app
+      - name: lint-imports
+        working-directory: backend
+        run: lint-imports --config .importlinter
+
+  unit:
+    name: unit (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install backend (dev extras)
+        run: python -m pip install -e 'backend[dev]'
+      - name: pytest unit + branch coverage
+        working-directory: backend
+        run: |
+          if [ -d tests/unit ]; then TARGET=tests/unit; else TARGET=tests; fi
+          python -m pytest "$TARGET" \
+            --cov=app --cov-branch \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml
+      - name: per-layer coverage rubric
+        working-directory: backend
+        run: python scripts/cov_rubric.py
+
+  integration:
+    name: integration (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install backend (dev extras)
+        run: python -m pip install -e 'backend[dev]'
+      - name: pytest integration
+        working-directory: backend
+        run: |
+          if [ -d tests/integration ]; then
+            python -m pytest tests/integration -q
+          else
+            echo "::notice::tests/integration/ does not exist yet — gate is wired but currently a no-op."
+          fi
+
+  e2e:
+    name: e2e (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Run Playwright suite
+        run: |
+          if [ -f frontend/playwright.config.ts ] || [ -f frontend/playwright.config.js ]; then
+            cd frontend
+            npm ci
+            npx playwright install --with-deps
+            npx playwright test
+          else
+            echo "::notice::frontend/playwright.config.* not present — gate is wired but currently a no-op."
+          fi
+
+  schema-drift:
+    name: schema-drift (OpenAPI + frontend codegen)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install backend (dev extras)
+        run: python -m pip install -e 'backend[dev]'
+      - name: Regenerate backend/openapi.json
+        run: python backend/scripts/dump_openapi.py --out backend/openapi.json
+      - name: Fail if backend/openapi.json drifted
+        run: |
+          if ! git diff --exit-code -- backend/openapi.json; then
+            echo "::error file=backend/openapi.json::OpenAPI schema drifted from backend/openapi.json. Regenerate with 'python backend/scripts/dump_openapi.py --out backend/openapi.json' and commit."
+            exit 1
+          fi
+      - name: Frontend type codegen drift
+        run: |
+          if [ -f frontend/package.json ] && grep -q '"codegen"' frontend/package.json; then
+            cd frontend
+            npm ci
+            npm run codegen
+            cd ..
+            if ! git diff --exit-code -- frontend/src/types/api.ts; then
+              echo "::error file=frontend/src/types/api.ts::Frontend OpenAPI types drifted. Regenerate with 'npm run codegen' in frontend/ and commit."
+              exit 1
+            fi
+          else
+            echo "::notice::frontend codegen script not wired yet — gate is wired but currently a no-op for the frontend half."
+          fi
+
+  mutation:
+    name: mutation (mutmut on app/domain)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install backend (dev extras)
+        run: python -m pip install -e 'backend[dev]'
+      - name: mutmut run
+        # paths_to_mutate is configured under [tool.mutmut] in backend/pyproject.toml.
+        working-directory: backend
+        run: python -m mutmut run

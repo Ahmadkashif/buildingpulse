@@ -14,6 +14,14 @@ backend/*.egg-info/
 backend/.pytest_cache/
 backend/.ruff_cache/
 backend/artifacts/
+backend/var/
+backend/.venv/
+backend/.coverage
+backend/coverage.xml
+backend/.mypy_cache/
+backend/mutants/
+backend/.mutmut-cache
+.claude/
 
 # Frontend
 frontend/node_modules/
@@ -24,6 +32,10 @@ frontend/.env
 frontend/.env.local
 frontend/.vercel/
 frontend/.turbo/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
 
 # Claude
 .claude-personal/
