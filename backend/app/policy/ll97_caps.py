@@ -24,7 +24,29 @@ from typing import Final, Literal, get_args
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-__all__ = ["CAPS", "EmissionsCap", "PropertyType"]
+__all__ = [
+    "CAPS",
+    "EMISSIONS_COEFFICIENT_TCO2E_PER_KBTU",
+    "EmissionsCap",
+    "FINE_USD_PER_TCO2E_OVER_CAP",
+    "PropertyType",
+]
+
+
+# Statutory penalty for exceeding an LL97 emissions cap: $268 per metric ton
+# of CO2e over the cap, per year.
+# Source: NYC Admin Code §28-320.6 (LL97 of 2019).
+FINE_USD_PER_TCO2E_OVER_CAP: Final[float] = 268.0
+
+
+# Site-EUI → emissions conversion. The MVP collapses NYC's per-fuel
+# emissions coefficients (NYC Admin Code §28-320.3.2 / 1 RCNY §103-14
+# Table 1: electricity 0.000288962 tCO2e/kWh ≈ 0.0000847 tCO2e/kBTU,
+# natural gas 0.0000531 tCO2e/kBTU, #2 fuel oil 0.0000742 tCO2e/kBTU) into
+# a single weighted average appropriate for a NYC commercial building
+# whose fuel mix is unknown at form-submission time. The PRD calls this
+# out as a v1 simplification; per-fuel breakdown is v2 work.
+EMISSIONS_COEFFICIENT_TCO2E_PER_KBTU: Final[float] = 0.0000681
 
 
 PropertyType = Literal[
