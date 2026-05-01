@@ -14,6 +14,7 @@ import { InsightCard } from "@/components/report/insight-card";
 import { ActionColumn } from "@/components/report/action-column";
 import { ExportDialog } from "@/components/report/export-dialog";
 import { SponsorStrip } from "@/components/report/sponsor-strip";
+import { ScenariosCard } from "@/components/report/scenarios-card";
 import { LeadModal, type LeadModalContext } from "@/components/modal/lead-modal";
 import { usePrediction } from "@/hooks/use-prediction";
 import { useUnlock } from "@/providers/unlock-provider";
@@ -115,6 +116,17 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             title="LL97 Fine Outlook"
             description="Projected annual fines across the 2024–2029 and 2030–2034 compliance periods."
             data={prediction.ll97.fineSeries}
+          />
+
+          <ScenariosCard
+            unlocked={unlocked}
+            query={{
+              predictionId: id,
+              propertyType: prediction.input.propertyType,
+              predictedEui: prediction.prediction.siteEuiKbtuPerSqft,
+              grossFloorAreaSqft: prediction.input.grossFloorAreaSqft,
+            }}
+            onRequestUnlock={() => setLeadOpen(true)}
           />
 
           <section aria-label="Insights" className="flex flex-col gap-4">
