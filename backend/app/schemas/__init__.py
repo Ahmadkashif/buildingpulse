@@ -83,6 +83,32 @@ class LL97(ApiModel):
     fine_series: list[FineYear] = Field(min_length=1)
 
 
+_EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+_PHONE_PATTERN = r"^\+?[0-9][0-9 \-().]{6,}$"
+
+
+class CreateLeadInput(ApiModel):
+    prediction_id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    email: str = Field(min_length=1, pattern=_EMAIL_PATTERN)
+    phone: str = Field(min_length=1, pattern=_PHONE_PATTERN)
+    role: str = Field(min_length=1)
+    consent_given: Literal[True]
+    scenario_id: str | None = None
+    property_type: PropertyType
+    borough: Borough
+    gross_floor_area_sqft: float = Field(ge=0)
+    year_built: int = Field(ge=1800, le=2026, strict=True)
+    predicted_eui: float = Field(ge=0)
+    projected_fine_usd: float = Field(ge=0)
+    at_risk: bool = Field(strict=True)
+    report_url: str = Field(min_length=1)
+
+
+class LeadCreated(ApiModel):
+    id: str = Field(min_length=1)
+
+
 class PredictionResponse(ApiModel):
     id: str = Field(min_length=1)
     generated_at: datetime
@@ -98,7 +124,9 @@ __all__ = [
     "ApiModel",
     "Borough",
     "CreateBuildingInput",
+    "CreateLeadInput",
     "FineYear",
+    "LeadCreated",
     "Peer",
     "PeerCohort",
     "Prediction",

@@ -45,13 +45,19 @@ from opentelemetry.sdk.trace.export import (
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import AppConfig, load_app_config
+from app.integrations.email_dispatcher import EmailDispatcher
+from app.integrations.webhook_dispatcher import WebhookDispatcher
 from app.repos.artifact_registry import ArtifactRegistry
 from app.repos.audit_repo import AuditRepo
 from app.repos.connection import connect
+from app.repos.lead_repo import LeadRepo
 from app.repos.peer_cohorts_registry import PeerCohortsRegistry
 from app.services.resource.audit.service import AuditService
+from app.services.resource.lead.service import LeadResourceService
+from app.services.resource.notification.service import NotificationResourceService
 from app.services.resource.prediction.service import PredictionResourceService
 from app.services.resource.sponsor.service import SponsorResourceService
+from app.services.usecase.lead_capture.service import LeadCaptureUseCaseService
 
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
@@ -82,9 +88,7 @@ def init_app_config() -> AppConfig:
 def get_app_config() -> AppConfig:
     """FastAPI dependency: yields the process-wide AppConfig."""
     if _app_config is None:
-        raise RuntimeError(
-            "AppConfig not initialized; lifespan startup did not run"
-        )
+        raise RuntimeError("AppConfig not initialized; lifespan startup did not run")
     return _app_config
 
 
@@ -119,9 +123,7 @@ def init_artifact_registry(artifacts_dir: str | None = None) -> ArtifactRegistry
 def get_artifact_registry() -> ArtifactRegistry:
     """FastAPI dependency: yields the process-wide ArtifactRegistry."""
     if _artifact_registry is None:
-        raise RuntimeError(
-            "ArtifactRegistry not initialized; lifespan startup did not run"
-        )
+        raise RuntimeError("ArtifactRegistry not initialized; lifespan startup did not run")
     return _artifact_registry
 
 
@@ -137,18 +139,14 @@ def init_peer_cohorts_registry(
     """Build the process-wide PeerCohortsRegistry. Idempotent within a process."""
     global _peer_cohorts_registry
     if _peer_cohorts_registry is None:
-        _peer_cohorts_registry = PeerCohortsRegistry(
-            artifacts_dir or _resolve_artifacts_dir()
-        )
+        _peer_cohorts_registry = PeerCohortsRegistry(artifacts_dir or _resolve_artifacts_dir())
     return _peer_cohorts_registry
 
 
 def get_peer_cohorts_registry() -> PeerCohortsRegistry:
     """FastAPI dependency: yields the process-wide PeerCohortsRegistry."""
     if _peer_cohorts_registry is None:
-        raise RuntimeError(
-            "PeerCohortsRegistry not initialized; lifespan startup did not run"
-        )
+        raise RuntimeError("PeerCohortsRegistry not initialized; lifespan startup did not run")
     return _peer_cohorts_registry
 
 
@@ -282,9 +280,7 @@ def get_trace_id() -> str:
 
 def get_prediction_service() -> PredictionResourceService:
     """FastAPI dependency: yields the prediction service backed by the registry."""
-    return PredictionResourceService(
-        get_artifact_registry(), get_peer_cohorts_registry()
-    )
+    return PredictionResourceService(get_artifact_registry(), get_peer_cohorts_registry())
 
 
 async def get_audit_service() -> AsyncIterator[AuditService]:
@@ -292,6 +288,38 @@ async def get_audit_service() -> AsyncIterator[AuditService]:
     conn = connect()
     try:
         yield AuditService(AuditRepo(conn))
+    finally:
+        conn.close()
+
+
+def _utc_now() -> Any:
+    from datetime import UTC, datetime
+
+    return datetime.now(UTC)
+
+
+async def get_lead_capture_use_case() -> AsyncIterator[LeadCaptureUseCaseService]:
+    """FastAPI dependency: yields a fully wired LeadCaptureUseCaseService."""
+    config = get_app_config()
+    conn = connect()
+    try:
+        lead_service = LeadResourceService(LeadRepo(conn), now=_utc_now)
+        email_dispatcher = EmailDispatcher(config.sponsor.lead_email)
+        webhook_dispatcher: WebhookDispatcher | None = (
+            WebhookDispatcher(config.sponsor.lead_webhook_url)
+            if config.sponsor.lead_webhook_url is not None
+            else None
+        )
+        notification_service = NotificationResourceService(
+            config.sponsor, email_dispatcher, webhook_dispatcher
+        )
+        audit_service = AuditService(AuditRepo(conn))
+        yield LeadCaptureUseCaseService(
+            lead_service=lead_service,
+            notification_service=notification_service,
+            audit_service=audit_service,
+            now=_utc_now,
+        )
     finally:
         conn.close()
 
@@ -306,6 +334,7 @@ __all__ = [
     "get_app_config",
     "get_artifact_registry",
     "get_audit_service",
+    "get_lead_capture_use_case",
     "get_logger",
     "get_peer_cohorts_registry",
     "get_prediction_service",

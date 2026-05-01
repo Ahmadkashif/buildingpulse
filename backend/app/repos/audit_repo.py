@@ -9,6 +9,15 @@ class AuditRepo:
     def __init__(self, conn: sqlite3.Connection) -> None:
         self._conn = conn
 
+    def prediction_exists(self, prediction_id: str) -> bool:
+        row = self._conn.execute(
+            "SELECT 1 FROM audit_log "
+            "WHERE event_type = 'prediction_generated' AND prediction_id = ? "
+            "LIMIT 1",
+            (prediction_id,),
+        ).fetchone()
+        return row is not None
+
     def insert(
         self,
         *,

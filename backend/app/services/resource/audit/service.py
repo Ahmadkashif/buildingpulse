@@ -30,6 +30,9 @@ class AuditService:
     def __init__(self, repo: AuditRepo) -> None:
         self._repo = repo
 
+    def prediction_exists(self, prediction_id: str) -> bool:
+        return self._repo.prediction_exists(prediction_id)
+
     async def record(self, event: AuditEvent) -> int:
         dumped = event.model_dump(mode="json")
         payload = {k: v for k, v in dumped.items() if k not in _COMMON_COLUMNS}
