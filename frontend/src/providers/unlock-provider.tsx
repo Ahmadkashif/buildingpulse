@@ -4,13 +4,15 @@ import * as React from "react";
 
 const STORAGE_KEY = "buildingpulse:unlocked-reports";
 
+export type UnlockEntry = { reportId: string; email: string | null };
+
 export type UnlockState = {
-  unlocked: ReadonlyArray<string>;
+  unlocked: ReadonlyArray<UnlockEntry>;
 };
 
 export type UnlockAction =
-  | { type: "unlock"; reportId: string }
-  | { type: "hydrate"; reportIds: ReadonlyArray<string> }
+  | { type: "unlock"; reportId: string; email: string | null }
+  | { type: "hydrate"; entries: ReadonlyArray<UnlockEntry> }
   | { type: "reset" };
 
 export const initialUnlockState: UnlockState = { unlocked: [] };
@@ -18,11 +20,15 @@ export const initialUnlockState: UnlockState = { unlocked: [] };
 export function unlockReducer(state: UnlockState, action: UnlockAction): UnlockState {
   switch (action.type) {
     case "unlock": {
-      if (state.unlocked.includes(action.reportId)) return state;
-      return { unlocked: [...state.unlocked, action.reportId] };
+      const existingIdx = state.unlocked.findIndex((e) => e.reportId === action.reportId);
+      const next: UnlockEntry = { reportId: action.reportId, email: action.email };
+      if (existingIdx === -1) return { unlocked: [...state.unlocked, next] };
+      const merged = [...state.unlocked];
+      merged[existingIdx] = { ...merged[existingIdx]!, email: action.email ?? merged[existingIdx]!.email };
+      return { unlocked: merged };
     }
     case "hydrate": {
-      return { unlocked: [...action.reportIds] };
+      return { unlocked: [...action.entries] };
     }
     case "reset": {
       if (state.unlocked.length === 0) return state;
@@ -33,29 +39,41 @@ export function unlockReducer(state: UnlockState, action: UnlockAction): UnlockS
 
 interface UnlockContextValue {
   isUnlocked: (reportId: string) => boolean;
-  unlock: (reportId: string) => void;
+  emailFor: (reportId: string) => string | null;
+  unlock: (reportId: string, email?: string | null) => void;
   reset: () => void;
 }
 
 const UnlockContext = React.createContext<UnlockContextValue | null>(null);
 
-function readSession(): ReadonlyArray<string> {
+function readSession(): ReadonlyArray<UnlockEntry> {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((v): v is string => typeof v === "string");
+    return parsed.flatMap((v): UnlockEntry[] => {
+      if (typeof v === "string") return [{ reportId: v, email: null }];
+      if (
+        v &&
+        typeof v === "object" &&
+        typeof (v as { reportId?: unknown }).reportId === "string"
+      ) {
+        const obj = v as { reportId: string; email?: unknown };
+        return [{ reportId: obj.reportId, email: typeof obj.email === "string" ? obj.email : null }];
+      }
+      return [];
+    });
   } catch {
     return [];
   }
 }
 
-function writeSession(ids: ReadonlyArray<string>): void {
+function writeSession(entries: ReadonlyArray<UnlockEntry>): void {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   } catch {
     // ignore
   }
@@ -65,8 +83,8 @@ export function UnlockProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(unlockReducer, initialUnlockState);
 
   React.useEffect(() => {
-    const ids = readSession();
-    if (ids.length > 0) dispatch({ type: "hydrate", reportIds: ids });
+    const entries = readSession();
+    if (entries.length > 0) dispatch({ type: "hydrate", entries });
   }, []);
 
   React.useEffect(() => {
@@ -75,8 +93,11 @@ export function UnlockProvider({ children }: { children: React.ReactNode }) {
 
   const value = React.useMemo<UnlockContextValue>(
     () => ({
-      isUnlocked: (reportId: string) => state.unlocked.includes(reportId),
-      unlock: (reportId: string) => dispatch({ type: "unlock", reportId }),
+      isUnlocked: (reportId: string) => state.unlocked.some((e) => e.reportId === reportId),
+      emailFor: (reportId: string) =>
+        state.unlocked.find((e) => e.reportId === reportId)?.email ?? null,
+      unlock: (reportId: string, email: string | null = null) =>
+        dispatch({ type: "unlock", reportId, email }),
       reset: () => dispatch({ type: "reset" }),
     }),
     [state.unlocked],

@@ -38,7 +38,7 @@ export interface LeadModalContext {
 export interface LeadModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: (leadId: string) => void;
+  onSuccess: (leadId: string, email: string) => void;
   context: LeadModalContext;
 }
 
@@ -128,7 +128,7 @@ export function LeadModal({ open, onClose, onSuccess, context }: LeadModalProps)
 
     capture.mutate(input, {
       onSuccess: (response) => {
-        onSuccess(response.data.id);
+        onSuccess(response.data.id, input.email);
         onClose();
       },
       onError: () => {

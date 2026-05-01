@@ -55,8 +55,9 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const { id } = use(params);
   const [leadOpen, setLeadOpen] = React.useState(false);
 
-  const { isUnlocked, unlock } = useUnlock();
+  const { isUnlocked, unlock, emailFor } = useUnlock();
   const unlocked = isUnlocked(id);
+  const unlockedEmail = emailFor(id);
 
   const query = usePrediction(id);
   const onChooseScenario = useChooseScenario(id);
@@ -156,7 +157,22 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           <InfoCard title="Building Profile" rows={profile} />
 
           <ActionColumn>
-            <ExportPdfButton predictionId={id} unlocked={unlocked} />
+            <ExportPdfButton
+              predictionId={id}
+              unlocked={unlocked}
+              params={
+                unlockedEmail
+                  ? {
+                      email: unlockedEmail,
+                      propertyType: prediction.input.propertyType,
+                      borough: prediction.input.borough,
+                      grossFloorAreaSqft: prediction.input.grossFloorAreaSqft,
+                      yearBuilt: prediction.input.yearBuilt,
+                      numberOfBuildings: prediction.input.numberOfBuildings,
+                    }
+                  : null
+              }
+            />
             <Button
               variant="secondary"
               width="full"
@@ -207,7 +223,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       <LeadModal
         open={leadOpen}
         onClose={() => setLeadOpen(false)}
-        onSuccess={() => unlock(id)}
+        onSuccess={(_leadId, email) => unlock(id, email)}
         context={buildLeadContext(id, prediction)}
       />
     </div>
