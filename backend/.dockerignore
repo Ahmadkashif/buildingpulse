@@ -1,0 +1,17 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+.coverage
+coverage.xml
+*.egg-info
+buildingpulse_backend.egg-info
+var/
+tests/
+dataexploration/
+training/
+.venv
+.env
+.env.*

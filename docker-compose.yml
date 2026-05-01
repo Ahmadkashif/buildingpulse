@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    image: buildingpulse-backend:dev
+    ports:
+      - "8000:8000"
+    environment:
+      DB_PATH: /app/var/buildingpulse.db
+    volumes:
+      - backend-var:/app/var
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/openapi.json"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    image: buildingpulse-frontend:dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-var:
