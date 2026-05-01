@@ -48,6 +48,7 @@ from app.repos.artifact_registry import ArtifactRegistry
 from app.repos.audit_repo import AuditRepo
 from app.repos.connection import connect
 from app.services.resource.audit.service import AuditService
+from app.services.resource.prediction.service import PredictionResourceService
 
 REQUEST_ID_HEADER = "X-Request-ID"
 SERVICE_NAME = "buildingpulse-backend"
@@ -215,6 +216,11 @@ def get_trace_id() -> str:
     return ""
 
 
+def get_prediction_service() -> PredictionResourceService:
+    """FastAPI dependency: yields the prediction service backed by the registry."""
+    return PredictionResourceService(get_artifact_registry())
+
+
 async def get_audit_service() -> AsyncIterator[AuditService]:
     """FastAPI dependency: yields an AuditService backed by a per-request connection."""
     conn = connect()
@@ -234,6 +240,7 @@ __all__ = [
     "get_artifact_registry",
     "get_audit_service",
     "get_logger",
+    "get_prediction_service",
     "get_request_id",
     "get_trace_id",
     "init_artifact_registry",

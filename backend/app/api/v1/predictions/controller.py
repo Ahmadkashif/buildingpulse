@@ -1,10 +1,11 @@
-"""POST /api/predictions — Phase 1 stub controller.
+"""POST /api/predictions — controller.
 
-Hands back the canonical stub payload with a freshly generated `id` and
-`generatedAt`, echoing the validated request body as `input`. After a
-successful response is shaped, the controller records a
-`PredictionGenerated` audit event tagged with the same `request_id` that
-appears on the request's structured log line.
+Calls the real prediction resource service to produce the `prediction`
+block (point estimate + interval + model version) and leaves `peer` and
+`ll97` on the canonical fixture until their own resource services land.
+The controller still records a ``PredictionGenerated`` audit event
+tagged with the same `request_id` that appears on the request's
+structured log line.
 """
 
 from __future__ import annotations
@@ -16,11 +17,17 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 
-from app.deps import get_audit_service, get_request_id, get_trace_id
+from app.deps import (
+    get_audit_service,
+    get_prediction_service,
+    get_request_id,
+    get_trace_id,
+)
 from app.domain.audit.types import PredictionGenerated
 from app.fixtures.stub_prediction import STUB
 from app.schemas import CreateBuildingInput, PredictionResponse
 from app.services.resource.audit.service import AuditService
+from app.services.resource.prediction.service import PredictionResourceService
 
 
 class PredictionResponseEnvelope(BaseModel):
@@ -45,14 +52,31 @@ class PredictionsController:
         self,
         body: CreateBuildingInput,
         audit: Annotated[AuditService, Depends(get_audit_service)],
+        prediction_service: Annotated[
+            PredictionResourceService, Depends(get_prediction_service)
+        ],
     ) -> dict[str, Any]:
         prediction_id = f"pred_{uuid4().hex}"
         generated_at = datetime.now(UTC)
+
+        eui = prediction_service.predict(
+            property_type=body.property_type,
+            borough=body.borough,
+            gross_floor_area_sqft=body.gross_floor_area_sqft,
+            year_built=body.year_built,
+            number_of_buildings=body.number_of_buildings,
+        )
+
         payload: dict[str, Any] = {
             "id": prediction_id,
             "generatedAt": generated_at.isoformat(),
             "input": body.model_dump(by_alias=True),
-            "prediction": STUB["prediction"],
+            "prediction": {
+                "siteEuiKbtuPerSqft": eui.value,
+                "intervalLow": eui.low,
+                "intervalHigh": eui.high,
+                "modelVersion": eui.model_version,
+            },
             "peer": STUB["peer"],
             "ll97": STUB["ll97"],
         }
@@ -64,8 +88,8 @@ class PredictionsController:
                 trace_id=get_trace_id(),
                 actor_session_id="",
                 prediction_id=prediction_id,
-                model_version=STUB["prediction"]["modelVersion"],
-                site_eui_kbtu_per_sqft=STUB["prediction"]["siteEuiKbtuPerSqft"],
+                model_version=eui.model_version,
+                site_eui_kbtu_per_sqft=eui.value,
             )
         )
 
