@@ -4,25 +4,26 @@ import * as React from "react";
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { usePdfDownload } from "@/hooks/use-pdf-download";
+import { usePdfDownload, type PdfDownloadParams } from "@/hooks/use-pdf-download";
 
 interface ExportPdfButtonProps {
   predictionId: string;
   unlocked: boolean;
+  params: PdfDownloadParams | null;
 }
 
 const LOCKED_HINT = "Unlock the report by sharing your contact info to download the PDF.";
 
-export function ExportPdfButton({ predictionId, unlocked }: ExportPdfButtonProps) {
+export function ExportPdfButton({ predictionId, unlocked, params }: ExportPdfButtonProps) {
   const { status, error, download, reset } = usePdfDownload();
   const isDownloading = status === "downloading";
   const isError = status === "error";
-  const disabled = !unlocked || isDownloading;
+  const disabled = !unlocked || isDownloading || params === null;
 
   const handleClick = () => {
-    if (!unlocked) return;
+    if (!unlocked || params === null) return;
     if (isError) reset();
-    void download(predictionId);
+    void download(predictionId, params);
   };
 
   return (
