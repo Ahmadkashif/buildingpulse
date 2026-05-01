@@ -8,6 +8,16 @@ export default defineConfig({
   reporter: "list",
   use: {
     headless: true,
+    baseURL: "http://localhost:3100",
+  },
+  webServer: {
+    command: "npm run dev -- --port 3100",
+    url: "http://localhost:3100",
+    env: { NEXT_PUBLIC_API_BASE_URL: "http://localhost:3100" },
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+    stdout: "pipe",
+    stderr: "pipe",
   },
   projects: [
     {

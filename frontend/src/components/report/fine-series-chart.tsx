@@ -25,10 +25,7 @@ export function FineSeriesChart({ title, description, data }: FineSeriesChartPro
           {description ? <CardDescription>{description}</CardDescription> : null}
         </CardHeader>
         <CardContent>
-          <p
-            className="text-on-surface-variant text-sm"
-            data-testid="ll97-fine-series-empty"
-          >
+          <p className="text-on-surface-variant text-sm" data-testid="ll97-fine-series-empty">
             No projected fine data available.
           </p>
         </CardContent>
@@ -190,9 +187,7 @@ export function FineSeriesChart({ title, description, data }: FineSeriesChartPro
         >
           <div>
             <dt className="font-medium">2024–2029 period</dt>
-            <dd className="text-on-surface font-semibold">
-              {formatCurrency(fineBefore)}/yr
-            </dd>
+            <dd className="text-on-surface font-semibold">{formatCurrency(fineBefore)}/yr</dd>
           </div>
           <div>
             <dt className="text-secondary font-medium">2030–2034 period</dt>
